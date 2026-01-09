@@ -585,3 +585,93 @@ footer {
   background: rgba(0, 0, 0, 0);
   /* Reveal clear image on hover */
 }
+
+/* --- Curriculum / Academics Section --- */
+.curriculum-grid {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.curriculum-card {
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  flex: 1;
+  min-width: 300px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.curr-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 25px;
+  color: var(--col-primary);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.curr-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.curriculum-card h3 {
+  margin-bottom: 15px;
+  margin-top: 55px;
+  /* Added spacing to prevent overlap with icon */
+  color: var(--col-primary-dark);
+}
+
+/* Fix margin for card p */
+.curriculum-card p {
+  color: #666;
+  line-height: 1.6;
+}
+
+/* Click / Interact Animations */
+.curriculum-card:focus,
+.curriculum-card:active {
+  outline: none;
+  transform: scale(1.03);
+  box-shadow: 0 0 25px rgba(229, 9, 20, 0.15);
+  /* Light glow using brand color approx */
+}
+
+/* Icon Pulse/Bounce on Active */
+.curriculum-card:focus .curr-icon,
+.curriculum-card:active .curr-icon {
+  transform: scale(1.1) translateY(-5px);
+  color: var(--col-gold);
+}
+
+/* Optional Ripple pseudo-element (simplified as highlight overlay) */
+.curriculum-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(197, 160, 89, 0.05);
+  /* very subtle tint using gold color */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.curriculum-card:focus::after,
+.curriculum-card:active::after {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .curriculum-card {
+    min-width: 100%;
+  }
+}
