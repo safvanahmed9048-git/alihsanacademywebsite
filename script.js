@@ -20,7 +20,7 @@ const DEFAULT_DATA = {
     // --- PAGES ---
     hero: {
         title: "Welcome to AL-IHSAN Academy",
-        subtitle: '"Building a Generation for Tomorrow"',
+        subtitle: 'Building a Generation for Tomorrow',
         image: "hero-bg.jpg",
         ctaText: "Read More",
         ctaLink: "#about"
