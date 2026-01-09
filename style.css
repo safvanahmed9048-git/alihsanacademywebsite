@@ -666,6 +666,9 @@ footer::before {
 .contact-label {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  /* Allow the flex item to shrink below its content size */
+  overflow: hidden;
 }
 
 .contact-label strong {
@@ -680,6 +683,9 @@ footer::before {
   font-size: 0.95rem;
   color: var(--col-primary-dark);
   font-weight: 600;
+  word-break: break-all;
+  /* Break long email addresses */
+  overflow-wrap: anywhere;
 }
 
 /* Highlight Animation (from script.js) */
