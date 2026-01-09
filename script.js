@@ -8,7 +8,7 @@ const DEFAULT_DATA = {
     hero: {
         title: "Welcome to AL-IHSAN Academy",
         subtitle: '"Building a Generation for Tomorrow"',
-        image: "https://images.unsplash.com/photo-1585038021831-8afd9f9ab27f?q=80&w=1920&auto=format&fit=crop"
+        image: "hero-bg.jpg"
     },
     about: {
         title: "About Us",
@@ -48,6 +48,14 @@ const db = {
         db.save(data);
     }
 };
+
+// --- MIGRATION FIX ---
+// Automatically update hero image for existing users who have cached data
+const currentData = db.get();
+if (currentData.hero.image.includes('unsplash.com')) {
+    currentData.hero.image = 'hero-bg.jpg';
+    db.save(currentData);
+}
 
 // --- UI LOGIC ---
 
