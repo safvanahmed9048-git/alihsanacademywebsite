@@ -346,16 +346,30 @@ header.scrolled {
 
 .about-image {
   flex: 1;
-  height: 400px;
+  /* Removed fixed height to allow vertical stack to grow with content or fill space */
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
   border-radius: var(--radius-md);
-  overflow: hidden;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  /* overflow: hidden; - removed to allow gaps/shadows if needed, or keep? Better to keep clean. */
 }
 
 .about-image img {
-  height: 100%;
   width: 100%;
+  height: auto;
+  /* Allow natural height or flex growth */
+  flex: 1;
+  /* Distribute available height evenly if container stretches */
   object-fit: cover;
+  border-radius: 8px;
+  /* Individual radius for separated images */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Vertical Gallery specific adjustments */
+.vertical-gallery {
+  min-height: 600px;
+  /* Ensure at least some height, though text will likely push it */
 }
 
 /* Activities */

@@ -146,7 +146,7 @@ function initContent() {
     const aboutText = document.getElementById('about-text');
     if (aboutText) {
         aboutText.innerHTML = data.about.content;
-        document.getElementById('about-img').src = data.about.image;
+        // Image is now static HTML
     }
 
     // Activities
