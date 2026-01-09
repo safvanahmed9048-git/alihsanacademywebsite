@@ -304,13 +304,9 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
             // If targeting contact section, add a temporary highlight
             if (targetId === '#get-in-touch') {
-                targetElement.style.transition = 'all 0.5s ease';
-                targetElement.style.boxShadow = '0 0 40px rgba(197, 160, 89, 0.5)';
-                targetElement.style.borderColor = 'var(--col-gold)';
-
+                targetElement.classList.add('contact-highlight-anim');
                 setTimeout(() => {
-                    targetElement.style.boxShadow = '';
-                    targetElement.style.borderColor = '';
+                    targetElement.classList.remove('contact-highlight-anim');
                 }, 2000);
             }
         }
