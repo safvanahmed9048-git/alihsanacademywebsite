@@ -155,90 +155,26 @@ function initContent() {
 
 
     // Gallery Marquee
-    const galleryTrack = document.getElementById('gallery-track');
-    if (galleryTrack && data.gallery && data.gallery.length > 0) {
-        // Ensure we have enough items for a smooth loop by duplicating list if needed
-        let galleryItems = data.gallery;
-
-        // Double the content multiple times to ensure it fills screen + scroll buffer
-        // (Simple approach: duplicate list X times)
-        const minItems = 10;
-        while (galleryItems.length < minItems) {
-            galleryItems = [...galleryItems, ...galleryItems];
-        }
-
-        // 1st Set
-        const generateItems = () => galleryItems.map(img => `
-            <div class="gallery-item" role="button" aria-label="View Image" onclick="openLightbox('${img}')">
-                <img src="${img}" alt="Gallery Image" loading="lazy">
-            </div>
-        `).join('');
-
-        // Render original + duplicate for seamless 50% scroll
-        galleryTrack.innerHTML = generateItems() + generateItems();
-    } else if (galleryTrack) {
-        // Fallback for empty gallery
-        galleryTrack.innerHTML = '<p style="color:white; padding:20px;">No images in gallery yet.</p>';
+    const galleryMarquee = document.getElementById('gallery-marquee');
+    if (galleryMarquee && data.gallery) {
+        // Double the gallery array to ensure a seamless loop
+        const loopGallery = [...data.gallery, ...data.gallery];
+        galleryMarquee.innerHTML = loopGallery.map((img, index) => `
+          <div class="gallery-item" onclick="openLightbox('${img}')">
+              <img src="${img}" alt="Al-Ihsan Gallery ${index + 1}" loading="lazy">
+          </div>
+      `).join('');
     }
 
-    // --- NEW SECTIONS RENDER END ---
+    // --- NEW SECTIONS RENDER ---
 
-    // ... existing contact renders ...
-
-    document.querySelectorAll('.app-phone').forEach(el => el.textContent = data.contact.phone);
-    document.querySelectorAll('.app-email').forEach(el => el.textContent = data.contact.email);
-    document.querySelectorAll('.app-address').forEach(el => el.textContent = data.contact.address);
-    // ...
-}
-
-// --- Lightbox Logic ---
-const lightbox = document.getElementById('lightbox');
-const lightboxImg = document.getElementById('lightbox-img');
-const closeBtn = document.querySelector('.lightbox-close');
-
-function openLightbox(src) {
-    if (!lightbox || !lightboxImg) return;
-    lightboxImg.src = src;
-    lightbox.classList.add('show');
-    document.body.style.overflow = 'hidden'; // Prevent background scrolling
-}
-
-// Close events
-if (closeBtn) {
-    closeBtn.onclick = function () {
-        lightbox.classList.remove('show');
-        lightbox.classList.remove('zoomed');
-        document.body.style.overflow = '';
-    };
-}
-
-if (lightbox) {
-    lightbox.onclick = function (e) {
-        if (e.target === lightbox) { // Click outside image
-            lightbox.classList.remove('show');
-            lightbox.classList.remove('zoomed');
-            document.body.style.overflow = '';
-        }
-    };
-}
-
-// Zoom Toggle
-if (lightboxImg) {
-    lightboxImg.onclick = function (e) {
-        e.stopPropagation(); // Don't trigger background close
-        lightbox.classList.toggle('zoomed');
-    };
-}
-
-// --- NEW SECTIONS RENDER ---
-
-// 1. Upcoming Events
-const eventsGrid = document.getElementById('events-grid');
-if (eventsGrid && data.events) {
-    if (data.events.length === 0) {
-        document.getElementById('events-section').style.display = 'none';
-    } else {
-        eventsGrid.innerHTML = data.events.map(ev => `
+    // 1. Upcoming Events
+    const eventsGrid = document.getElementById('events-grid');
+    if (eventsGrid && data.events) {
+        if (data.events.length === 0) {
+            document.getElementById('events-section').style.display = 'none';
+        } else {
+            eventsGrid.innerHTML = data.events.map(ev => `
                 <div class="event-card">
                     <div style="height: 150px; background: url('${ev.image}') center/cover;"></div>
                     <div style="padding: 15px;">
@@ -248,26 +184,26 @@ if (eventsGrid && data.events) {
                     </div>
                 </div>
             `).join('');
+        }
     }
-}
 
-// 2. Contact Info (Footer & Page)
-document.querySelectorAll('.app-phone').forEach(el => el.textContent = data.contact.phone);
-document.querySelectorAll('.app-email').forEach(el => el.textContent = data.contact.email);
-document.querySelectorAll('.app-address').forEach(el => el.textContent = data.contact.address);
+    // 2. Contact Info (Footer & Page)
+    document.querySelectorAll('.app-phone').forEach(el => el.textContent = data.contact.phone);
+    document.querySelectorAll('.app-email').forEach(el => el.textContent = data.contact.email);
+    document.querySelectorAll('.app-address').forEach(el => el.textContent = data.contact.address);
 
-// Dynamic Links
-const waLink = `https://wa.me/${data.contact.whatsapp.replace(/[^0-9]/g, '')}`;
-document.querySelectorAll('.link-whatsapp').forEach(el => el.href = waLink);
-document.querySelectorAll('.link-phone').forEach(el => el.href = `tel:${data.contact.phone}`);
-document.querySelectorAll('.link-email').forEach(el => el.href = `mailto:${data.contact.email}`);
+    // Dynamic Links
+    const waLink = `https://wa.me/${data.contact.whatsapp.replace(/[^0-9]/g, '')}`;
+    document.querySelectorAll('.link-whatsapp').forEach(el => el.href = waLink);
+    document.querySelectorAll('.link-phone').forEach(el => el.href = `tel:${data.contact.phone}`);
+    document.querySelectorAll('.link-email').forEach(el => el.href = `mailto:${data.contact.email}`);
 
-// Socials
-if (data.socials) {
-    document.querySelectorAll('.link-fb').forEach(el => el.href = data.socials.facebook);
-    document.querySelectorAll('.link-insta').forEach(el => el.href = data.socials.instagram);
-    document.querySelectorAll('.link-yt').forEach(el => el.href = data.socials.youtube);
-}
+    // Socials
+    if (data.socials) {
+        document.querySelectorAll('.link-fb').forEach(el => el.href = data.socials.facebook);
+        document.querySelectorAll('.link-insta').forEach(el => el.href = data.socials.instagram);
+        document.querySelectorAll('.link-yt').forEach(el => el.href = data.socials.youtube);
+    }
 }
 
 // 2. Animated Counters
@@ -325,6 +261,58 @@ document.addEventListener('DOMContentLoaded', () => {
             header.classList.add('scrolled');
         } else {
             header.classList.remove('scrolled');
+        }
+    });
+});
+
+// --- LIGHTBOX LOGIC ---
+function openLightbox(imgSrc) {
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    if (lightbox && lightboxImg) {
+        lightboxImg.src = imgSrc;
+        lightbox.classList.add('active');
+        document.body.style.overflow = 'hidden'; // Prevent scrolling
+    }
+}
+
+function closeLightbox() {
+    const lightbox = document.getElementById('lightbox');
+    if (lightbox) {
+        lightbox.classList.remove('active');
+        document.body.style.overflow = 'auto'; // Restore scrolling
+    }
+}
+
+// Close lightbox on Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeLightbox();
+});
+
+// --- SMOOTH SCROLL & HIGHLIGHT ---
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        const targetId = this.getAttribute('href');
+        if (targetId === '#') return;
+
+        const targetElement = document.querySelector(targetId);
+        if (targetElement) {
+            e.preventDefault();
+            targetElement.scrollIntoView({
+                behavior: 'smooth'
+            });
+
+            // If targeting contact section, add a temporary highlight
+            if (targetId === '#get-in-touch') {
+                targetElement.style.transition = 'all 0.5s ease';
+                targetElement.style.boxShadow = '0 0 40px rgba(197, 160, 89, 0.5)';
+                targetElement.style.borderColor = 'var(--col-gold)';
+
+                setTimeout(() => {
+                    targetElement.style.boxShadow = '';
+                    targetElement.style.borderColor = '';
+                }, 2000);
+            }
         }
     });
 });
