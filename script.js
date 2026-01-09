@@ -149,20 +149,7 @@ function initContent() {
         // Image is now static HTML
     }
 
-    // Activities
-    const activityGrid = document.getElementById('activity-grid');
-    if (activityGrid) {
-        activityGrid.innerHTML = data.activities.map(act => `
-          <div class="activity-card">
-              <div class="activity-img" style="background-image: url('${act.img}'); background-size: cover;"></div>
-              <div class="activity-body">
-                  <span class="text-gold" style="font-size: 0.9rem; font-weight: bold;">${act.date}</span>
-                  <h3 style="margin: 10px 0; font-size: 1.2rem;">${act.title}</h3>
-                  <p style="color: #666;">${act.desc}</p>
-              </div>
-          </div>
-      `).join('');
-    }
+
 
     // Gallery
     const galleryGrid = document.getElementById('gallery-grid');
