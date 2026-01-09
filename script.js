@@ -28,10 +28,13 @@ const DEFAULT_DATA = {
     about: {
         title: "About Us",
         content: `
-            <p>AL-IHSAN Academy is an initiative of AL-IHSAN Organisation, established for the public benefit to support social inclusion among people living in the UK, especially the Keralite community. The organisation works to promote Islamic values, education, and Keralite culture and heritage, fostering harmony and community wellbeing through gatherings, celebrations of special occasions such as Eid and Ramadan, charitable support for the needy, and compassionate moral and pastoral care.</p>
-            
-            <p style="margin-top: 15px;">AL-IHSAN Academy focuses on moral and Islamic education for South Indian Muslim children across the UK and Europe. Through structured, virtual learning, the Academy offers <strong style="color: var(--col-primary);">Online Madrasa Education, Qur'an and Thajweed Classes, and Malayalam Language Classes</strong> delivered by expert teachers-making quality education accessible while nurturing strong Islamic values and cultural identity.</p>
-            
+            <div class="about-desc-box">
+                <h3 style="margin-bottom:20px; color:var(--col-primary-dark);">A Legacy of Knowledge</h3>
+                <p>AL-IHSAN Academy is an initiative of AL-IHSAN Organisation, established for the public benefit to support social inclusion among people living in the UK, especially the Keralite community. The organisation works to promote Islamic values, education, and Keralite culture and heritage, fostering harmony and community wellbeing through gatherings, celebrations of special occasions such as Eid and Ramadan, charitable support for the needy, and compassionate moral and pastoral care.</p>
+                
+                <p style="margin-top: 15px;">AL-IHSAN Academy focuses on moral and Islamic education for South Indian Muslim children across the UK and Europe. Through structured, virtual learning, the Academy offers <strong style="color: var(--col-primary);">Online Madrasa Education, Qur'an and Thajweed Classes, and Malayalam Language Classes</strong> delivered by expert teachers-making quality education accessible while nurturing strong Islamic values and cultural identity.</p>
+            </div>
+
             <h4 style="margin: 25px 0 15px; color: var(--col-gold);">Our Features</h4>
             <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: 1fr; gap: 10px;">
                 <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Islamic Moral classes for children across UK & Europe in online</li>
@@ -101,8 +104,8 @@ if (currentData.hero.image.includes('unsplash.com')) {
     dataChanged = true;
 }
 
-// Force update "About Us" content to new version if it lacks specific new features text
-if (!currentData.about.content.includes('Our Features')) {
+// Force update "About Us" content to new version if it lacks the new box structure
+if (!currentData.about.content.includes('about-desc-box')) {
     currentData.about.content = DEFAULT_DATA.about.content;
     dataChanged = true;
 }
