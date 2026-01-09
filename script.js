@@ -27,7 +27,7 @@ const DEFAULT_DATA = {
     },
     about: {
         title: "About Us",
-        content: "AL-IHSAN Academy is an initiative of AL-IHSAN Organisation, established for the public benefit to support social inclusion among people living in the UK, especially the Keralite community. The organisation works to promote Islamic values, education, and Keralite culture and heritage. fostering harmony and community wellbeing through gatherings, celebrations of special occasions such as Eid and Ramadan, charitable support for the needy. and compassionate moral and pastoral care.<br><br>AL-IHSAN Academy focuses on moral and Islamic education for South Indian Muslim children across the UK and Europe. Through structured, virtual learning, the Academy offers <b>(Madrasa education, Qur'an classes, and Malayalam language learning )</b> delivered by expert teachers-making quality education accessible while nurturing strong Islamic values and cultural identity.",
+        content: `AL-IHSAN Academy is an initiative of AL-IHSAN Organisation, established for the public benefit to support social inclusion among people living in the UK, especially the Keralite community. The organisation works to promote Islamic values, education, and Keralite culture and heritage. fostering harmony and community wellbeing through gatherings, celebrations of special occasions such as Eid and Ramadan, charitable support for the needy. and compassionate moral and pastoral care.<br><br>AL-IHSAN Academy focuses on moral and Islamic education for South Indian Muslim children across the UK and Europe. Through structured, virtual learning, the Academy offers <strong style="color: var(--col-primary);">Online Madrasa Classes, Qur'an and Thajweed Classes, and Malayalam language Classes</strong> delivered by expert teachers-making quality education accessible while nurturing strong Islamic values and cultural identity.`,
         image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=1000&auto=format&fit=crop"
     },
     stats: {
@@ -69,15 +69,22 @@ const db = {
 };
 
 // --- MIGRATION FIX ---
-// Automatically update hero image for existing users who have cached data
+// Automatically update hero image and about content for existing users
 const currentData = db.get();
+let dataChanged = false;
+
 if (currentData.hero.image.includes('unsplash.com')) {
     currentData.hero.image = 'hero-bg.jpg';
-    db.save(currentData);
+    dataChanged = true;
 }
-// Update About Content
-if (currentData.about.content.startsWith("AL-IHSAN Academy is dedicated")) {
+
+// Force update "About Us" content to new version if it is short (old version)
+if (currentData.about.content.length < 300) {
     currentData.about.content = DEFAULT_DATA.about.content;
+    dataChanged = true;
+}
+
+if (dataChanged) {
     db.save(currentData);
 }
 
