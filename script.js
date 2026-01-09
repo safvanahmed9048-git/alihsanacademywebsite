@@ -53,9 +53,10 @@ const DEFAULT_DATA = {
         image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=1000&auto=format&fit=crop"
     },
     stats: {
-        students: 250,
-        teachers: 40,
-        classes: 10
+        students: 300,
+        teachers: 45,
+        alumni: 500,
+        families: 1000
     },
     events: [
         { id: 1, title: "Admission Open Day", date: "June 15, 2026", image: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=500", link: "#" },
@@ -106,6 +107,12 @@ if (!currentData.about.content.includes('Our Features')) {
     dataChanged = true;
 }
 
+// Force update stats if they are missing new keys (alumni)
+if (!currentData.stats.alumni) {
+    currentData.stats = DEFAULT_DATA.stats;
+    dataChanged = true;
+}
+
 if (dataChanged) {
     db.save(currentData);
 }
@@ -128,8 +135,10 @@ function initContent() {
     const statStudents = document.getElementById('stat-students');
     if (statStudents) {
         statStudents.setAttribute('data-target', data.stats.students);
-        document.getElementById('stat-teachers').setAttribute('data-target', data.stats.teachers);
-        document.getElementById('stat-classes').setAttribute('data-target', data.stats.classes);
+        if (document.getElementById('stat-teachers')) document.getElementById('stat-teachers').setAttribute('data-target', data.stats.teachers);
+        if (document.getElementById('stat-alumni')) document.getElementById('stat-alumni').setAttribute('data-target', data.stats.alumni || 500);
+        if (document.getElementById('stat-families')) document.getElementById('stat-families').setAttribute('data-target', data.stats.families || 1000);
+
         initCounters();
     }
 
@@ -213,7 +222,7 @@ function initCounters() {
             if (entry.isIntersecting) {
                 const counter = entry.target;
                 const target = +counter.getAttribute('data-target');
-                const increment = target / 100;
+                const increment = target / 100; // adjust speed
 
                 let c = 0;
                 const updateCounter = () => {
@@ -222,7 +231,7 @@ function initCounters() {
                         counter.textContent = c;
                         requestAnimationFrame(updateCounter);
                     } else {
-                        counter.textContent = target;
+                        counter.textContent = target + "+"; // Append + at end
                     }
                 };
                 updateCounter();

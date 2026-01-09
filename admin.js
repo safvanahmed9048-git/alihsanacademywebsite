@@ -65,6 +65,8 @@ function initAdmin() {
     if (data.stats) {
         if (document.getElementById('edit-stats-students')) document.getElementById('edit-stats-students').value = data.stats.students;
         if (document.getElementById('edit-stats-teachers')) document.getElementById('edit-stats-teachers').value = data.stats.teachers;
+        if (document.getElementById('edit-stats-alumni')) document.getElementById('edit-stats-alumni').value = data.stats.alumni;
+        if (document.getElementById('edit-stats-families')) document.getElementById('edit-stats-families').value = data.stats.families;
     }
 }
 

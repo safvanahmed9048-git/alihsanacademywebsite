@@ -297,9 +297,15 @@
 
                 <div class="card">
                     <h3>Stats Counter</h3>
-                    <div style="display: flex; gap: 20px;">
-                        <input type="number" id="edit-stats-students" class="form-control" placeholder="Students">
-                        <input type="number" id="edit-stats-teachers" class="form-control" placeholder="Teachers">
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                        <input type="number" id="edit-stats-students" class="form-control" placeholder="Students"
+                            style="flex:1;">
+                        <input type="number" id="edit-stats-teachers" class="form-control" placeholder="Teachers"
+                            style="flex:1;">
+                        <input type="number" id="edit-stats-alumni" class="form-control" placeholder="Alumni"
+                            style="flex:1;">
+                        <input type="number" id="edit-stats-families" class="form-control" placeholder="Families"
+                            style="flex:1;">
                     </div>
                     <br>
                     <button class="btn btn-primary" onclick="saveStats()">Update Stats</button>
