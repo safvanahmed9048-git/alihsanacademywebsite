@@ -27,7 +27,7 @@ const DEFAULT_DATA = {
     },
     about: {
         title: "About Us",
-        content: "AL-IHSAN Academy is dedicated to providing a holistic education that blends traditional Islamic studies with modern academic rigor. Our mission is to raise a generation of knowledgeable, ethical, and compassionate leaders.",
+        content: "AL-IHSAN Academy is an initiative of AL-IHSAN Organisation, established for the public benefit to support social inclusion among people living in the UK, especially the Keralite community. The organisation works to promote Islamic values, education, and Keralite culture and heritage. fostering harmony and community wellbeing through gatherings, celebrations of special occasions such as Eid and Ramadan, charitable support for the needy. and compassionate moral and pastoral care.<br><br>AL-IHSAN Academy focuses on moral and Islamic education for South Indian Muslim children across the UK and Europe. Through structured, virtual learning, the Academy offers <b>(Madrasa education, Qur'an classes, and Malayalam language learning )</b> delivered by expert teachers-making quality education accessible while nurturing strong Islamic values and cultural identity.",
         image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=1000&auto=format&fit=crop"
     },
     stats: {
@@ -75,6 +75,11 @@ if (currentData.hero.image.includes('unsplash.com')) {
     currentData.hero.image = 'hero-bg.jpg';
     db.save(currentData);
 }
+// Update About Content
+if (currentData.about.content.startsWith("AL-IHSAN Academy is dedicated")) {
+    currentData.about.content = DEFAULT_DATA.about.content;
+    db.save(currentData);
+}
 
 // --- UI LOGIC ---
 
@@ -102,7 +107,7 @@ function initContent() {
     // About
     const aboutText = document.getElementById('about-text');
     if (aboutText) {
-        aboutText.textContent = data.about.content;
+        aboutText.innerHTML = data.about.content;
         document.getElementById('about-img').src = data.about.image;
     }
 
