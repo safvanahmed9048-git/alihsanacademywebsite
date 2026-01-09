@@ -7,7 +7,7 @@
 const DEFAULT_DATA = {
     hero: {
         title: "Welcome to AL-IHSAN Academy",
-        subtitle: "Nurturing Minds with Islamic Values & Academic Excellence",
+        subtitle: '"Building a Generation for Tomorrow"',
         image: "https://images.unsplash.com/photo-1585038021831-8afd9f9ab27f?q=80&w=1920&auto=format&fit=crop"
     },
     about: {
