@@ -336,8 +336,10 @@ header.scrolled {
 /* About Section */
 .about-content {
   display: flex;
-  gap: 50px;
-  align-items: center;
+  gap: 30px;
+  /* Reduced gap for compact look */
+  align-items: stretch;
+  /* Critical: matches height of image col to text col */
 }
 
 .about-text {
@@ -345,31 +347,51 @@ header.scrolled {
 }
 
 .about-image {
-  flex: 1;
-  /* Removed fixed height to allow vertical stack to grow with content or fill space */
+  flex: 0 0 200px;
+  /* Fixed compact width */
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  border-radius: var(--radius-md);
-  /* overflow: hidden; - removed to allow gaps/shadows if needed, or keep? Better to keep clean. */
+  justify-content: space-between;
+  /* Fills height from top to bottom */
+  gap: 10px;
+  /* Removed fixed height and shadows from container */
 }
 
 .about-image img {
   width: 100%;
-  height: auto;
-  /* Allow natural height or flex growth */
   flex: 1;
-  /* Distribute available height evenly if container stretches */
+  /* Each image takes equal vertical space */
   object-fit: cover;
-  border-radius: 8px;
-  /* Individual radius for separated images */
+  border-radius: 20px;
+  /* Rounded/Curved corners */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  /* Bouncy spring transition */
+  cursor: pointer;
 }
 
-/* Vertical Gallery specific adjustments */
+/* "Variety Model" Animation Effects */
+.about-image img:hover {
+  transform: scale(1.05) rotate(2deg);
+  /* Pop out and tilt */
+  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
+  z-index: 5;
+}
+
+.about-image img:active {
+  transform: scale(0.90) rotate(0deg);
+  /* Press down effect */
+  transition: 0.1s;
+}
+
+.about-image img:nth-child(even):hover {
+  transform: scale(1.05) rotate(-2deg);
+  /* Alternate tilt direction */
+}
+
+/* Vertical Gallery specific adjustments - Override min-height */
 .vertical-gallery {
-  min-height: 600px;
-  /* Ensure at least some height, though text will likely push it */
+  min-height: auto;
 }
 
 /* Activities */
