@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AL-IHSAN Academy</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Favicon placeholder -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕌</text></svg>">
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="container nav-container">
+            <a href="#" class="logo">
+                <span>🕌</span> AL-IHSAN Academy
+            </a>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#about">About Us</a></li>
+                    <li><a href="#academics">Academics</a></li>
+                    <li><a href="#activities">Activities</a></li>
+                    <li><a href="#gallery">Gallery</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+            <a href="#contact" class="btn btn-primary btn-pulse">Admission Enquiry</a>
+        </div>
+    </header>
+
+    <!-- Home Section -->
+    <section id="home" class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 id="hero-title">Welcome to AL-IHSAN Academy</h1>
+            <p id="hero-subtitle">Excellence in Islamic & Modern Education</p>
+            <div class="hero-btn-wrapper">
+                <a href="#about" class="btn btn-gold">Read More</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section (Float over Hero) -->
+    <div class="container stats-section">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span id="stat-students" class="stat-number" data-target="0">0</span>
+                <span class="stat-label">Students</span>
+            </div>
+            <div class="stat-card">
+                <span id="stat-teachers" class="stat-number" data-target="0">0</span>
+                <span class="stat-label">Teachers</span>
+            </div>
+            <div class="stat-card">
+                <span id="stat-classes" class="stat-number" data-target="0">0</span>
+                <span class="stat-label">Classes</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" style="font-size: 1.5rem; margin-bottom: 25px;">Eng/Mal/Urdu/Arb</span>
+                <span class="stat-label">Languages</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Section -->
+    <section id="about" class="section-padding">
+        <div class="container">
+            <div class="text-center" style="margin-bottom: 60px;">
+                <h4 class="text-gold">Who We Are</h4>
+                <h2>Nurturing the Future Generation</h2>
+            </div>
+            <div class="about-content">
+                <div class="about-image">
+                    <img id="about-img" src="" alt="About Al-Ihsan">
+                </div>
+                <div class="about-text">
+                    <h3>A Legacy of Knowledge</h3>
+                    <p id="about-text" style="color: #666; margin: 20px 0; font-size: 1.1rem;"></p>
+                    <ul style="list-style: none; margin-bottom: 30px; color: var(--col-primary);">
+                        <li>✓ Holistic Curriculum</li>
+                        <li>✓ Moral & Ethical Development</li>
+                        <li>✓ State-of-the-art Facilities</li>
+                    </ul>
+                    <a href="#contact" class="btn btn-outline">Apply Now</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Academics -->
+    <section id="academics" class="section-padding" style="background-color: var(--col-bg-alt);">
+        <div class="container text-center">
+            <h4 class="text-gold">Academics</h4>
+            <h2 style="margin-bottom: 50px;">Our Curriculum</h2>
+            <div style="display: flex; gap: 30px; flex-wrap: wrap; justify-content: center;">
+                <div style="background: white; padding: 40px; border-radius: 16px; flex: 1; min-width: 300px; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">📚</div>
+                    <h3>General Studies</h3>
+                    <p style="color: #666;">Comprehensive syllabus following state standards (Class 1 - Class 10).</p>
+                </div>
+                <div style="background: white; padding: 40px; border-radius: 16px; flex: 1; min-width: 300px; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">🕌</div>
+                    <h3>Islamic Studies</h3>
+                    <p style="color: #666;">Quran, Hadeeth, Figh, and Akhlaq integrated into daily learning.</p>
+                </div>
+                <div style="background: white; padding: 40px; border-radius: 16px; flex: 1; min-width: 300px; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">🗣️</div>
+                    <h3>Languages</h3>
+                    <p style="color: #666;">Proficiency in English, Malayalam, Urdu, and Arabic.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Activities -->
+    <section id="activities" class="section-padding">
+        <div class="container">
+            <div class="text-center" style="margin-bottom: 60px;">
+                <h4 class="text-gold">Campus Life</h4>
+                <h2>Recent Activities</h2>
+            </div>
+            <div id="activity-grid" class="grid-3" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery -->
+    <section id="gallery" class="section-padding" style="background-color: var(--col-primary-dark); color: white;">
+        <div class="container">
+            <div class="text-center" style="margin-bottom: 60px;">
+                <h4 class="text-gold">Memories</h4>
+                <h2 style="color: white;">Al-Ihsan Gallery</h2>
+            </div>
+            <div id="gallery-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact / Enquiry -->
+    <section id="contact" class="section-padding">
+        <div class="container">
+            <div class="text-center" style="margin-bottom: 60px;">
+                <h4 class="text-gold">Join Us</h4>
+                <h2>Admission Enquiry</h2>
+            </div>
+            <div style="display: flex; gap: 50px; flex-wrap: wrap;">
+                <!-- Contact Info -->
+                <div style="flex: 1; min-width: 300px;">
+                    <h3 style="margin-bottom: 30px;">Get in Touch</h3>
+                    <div style="margin-bottom: 20px;">
+                        <strong style="display: block; color: var(--col-primary); margin-bottom: 5px;">📍 Address</strong>
+                        <p style="color: #666;">Al-Ihsan Academy Campus,<br>Kerala, India - 670001</p>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <strong style="display: block; color: var(--col-primary); margin-bottom: 5px;">📞 Phone</strong>
+                        <p style="color: #666;">+91 98765 43210</p>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <strong style="display: block; color: var(--col-primary); margin-bottom: 5px;">📧 Email</strong>
+                        <p style="color: #666;">info@alihsanacademy.com</p>
+                    </div>
+                </div>
+
+                <!-- Form -->
+                <div style="flex: 1.5; min-width: 300px;">
+                    <form id="enquiry-form" class="contact-form">
+                        <div style="display: flex; gap: 20px;">
+                            <div class="form-group" style="flex: 1;">
+                                <label>Student Name</label>
+                                <input type="text" name="studentName" class="form-control" required>
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label>Parent Name</label>
+                                <input type="text" name="parentName" class="form-control" required>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 20px;">
+                            <div class="form-group" style="flex: 1;">
+                                <label>Class Applying For</label>
+                                <select name="class" class="form-control">
+                                    <option>Class 01</option>
+                                    <option>Class 05</option>
+                                    <option>Class 10</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label>Contact Number</label>
+                                <input type="tel" name="phone" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Language Preference</label>
+                            <input type="text" name="language" class="form-control" placeholder="e.g. English, Malayalam">
+                        </div>
+                        <div class="form-group">
+                            <label>Message (Optional)</label>
+                            <textarea name="message" class="form-control" rows="4"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Enquiry</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <h4>AL-IHSAN Academy</h4>
+                    <p style="opacity: 0.8; font-size: 0.9rem;">Education for a better tomorrow, guided by faith and knowledge.</p>
+                </div>
+                <div>
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#about">About</a></li>
+                        <li><a href="#academics">Academics</a></li>
+                        <li><a href="#contact">Admissions</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Connect</h4>
+                    <ul>
+                        <li><a href="#">Facebook</a></li>
+                        <li><a href="#">Instagram</a></li>
+                        <li><a href="#">YouTube</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                &copy; 2026 AL-IHSAN Academy. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
