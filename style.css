@@ -684,13 +684,69 @@ footer {
   transition: opacity 0.3s;
 }
 
-.curriculum-card:focus::after,
-.curriculum-card:active::after {
+.curriculum-card:focus::after {
   opacity: 1;
 }
 
+/* Lightbox Modal */
+.lightbox {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.lightbox.show {
+  display: flex;
+  opacity: 1;
+}
+
+.lightbox-content {
+  max-width: 90%;
+  max-height: 85vh;
+  border-radius: 8px;
+  box-shadow: 0 0 50px rgba(255, 255, 255, 0.1);
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+  cursor: zoom-in;
+}
+
+.lightbox.show .lightbox-content {
+  transform: scale(1);
+}
+
+.lightbox.zoomed .lightbox-content {
+  transform: scale(1.5);
+  cursor: zoom-out;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 35px;
+  color: #fff;
+  font-size: 40px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.lightbox-close:hover {
+  color: var(--col-gold);
+}
+
+/* Mobile Responsive */
 @media (max-width: 768px) {
-  .curriculum-card {
-    min-width: 100%;
+  .gallery-item {
+    width: 220px;
+    height: 150px;
   }
 }
