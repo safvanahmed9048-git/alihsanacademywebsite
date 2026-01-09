@@ -27,7 +27,29 @@ const DEFAULT_DATA = {
     },
     about: {
         title: "About Us",
-        content: `AL-IHSAN Academy is an initiative of AL-IHSAN Organisation, established for the public benefit to support social inclusion among people living in the UK, especially the Keralite community. The organisation works to promote Islamic values, education, and Keralite culture and heritage. fostering harmony and community wellbeing through gatherings, celebrations of special occasions such as Eid and Ramadan, charitable support for the needy. and compassionate moral and pastoral care.<br><br>AL-IHSAN Academy focuses on moral and Islamic education for South Indian Muslim children across the UK and Europe. Through structured, virtual learning, the Academy offers <strong style="color: var(--col-primary);">Online Madrasa Classes, Qur'an and Thajweed Classes, and Malayalam language Classes</strong> delivered by expert teachers-making quality education accessible while nurturing strong Islamic values and cultural identity.`,
+        content: `
+            <p>AL-IHSAN Academy is an initiative of AL-IHSAN Organisation, established for the public benefit to support social inclusion among people living in the UK, especially the Keralite community. The organisation works to promote Islamic values, education, and Keralite culture and heritage, fostering harmony and community wellbeing through gatherings, celebrations of special occasions such as Eid and Ramadan, charitable support for the needy, and compassionate moral and pastoral care.</p>
+            
+            <p style="margin-top: 15px;">AL-IHSAN Academy focuses on moral and Islamic education for South Indian Muslim children across the UK and Europe. Through structured, virtual learning, the Academy offers <strong style="color: var(--col-primary);">Online Madrasa Education, Qur'an and Thajweed Classes, and Malayalam Language Classes</strong> delivered by expert teachers-making quality education accessible while nurturing strong Islamic values and cultural identity.</p>
+            
+            <h4 style="margin: 25px 0 15px; color: var(--col-gold);">Our Features</h4>
+            <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: 1fr; gap: 10px;">
+                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Islamic Moral classes for children across UK & Europe in online</li>
+                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> One Islamic teacher for one student</li>
+                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Flexible schedules to match your days/weeks</li>
+                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Minimum 3 classes per week</li>
+                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Additional group sessions on Islamic events & topics</li>
+                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Regular class assessments</li>
+                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Annual centralised exam in different locations in UK</li>
+                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Special Quran and Thajweed classes</li>
+                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Male and female teachers to meet your child requirements</li>
+                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Quizzes & Qur'an competitions for students</li>
+                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Classes in Arabic, Malayalam and English medium</li>
+                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Malayalam language sessions on demand</li>
+                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Classes from year 1 to Year 10 in structured curriculum</li>
+                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Quran Hifz courses on a shared accountability model</li>
+            </ul>
+        `,
         image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=1000&auto=format&fit=crop"
     },
     stats: {
@@ -78,8 +100,8 @@ if (currentData.hero.image.includes('unsplash.com')) {
     dataChanged = true;
 }
 
-// Force update "About Us" content to new version if it is short (old version)
-if (currentData.about.content.length < 300) {
+// Force update "About Us" content to new version if it lacks specific new features text
+if (!currentData.about.content.includes('Our Features')) {
     currentData.about.content = DEFAULT_DATA.about.content;
     dataChanged = true;
 }
