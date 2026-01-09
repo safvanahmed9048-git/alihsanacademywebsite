@@ -144,14 +144,35 @@ function deleteEvent(index) {
 }
 
 function addGalleryImage() {
-    const url = document.getElementById('new-gallery-img').value;
+    const urlInput = document.getElementById('new-gallery-img');
+    const url = urlInput.value.trim();
     if (!url) return;
 
-    const data = db.get();
-    data.gallery.push(url);
-    db.save(data);
-    renderGallery(data.gallery);
-    document.getElementById('new-gallery-img').value = '';
+    const btn = document.querySelector('button[onclick="addGalleryImage()"]');
+    const originalText = btn.textContent;
+    btn.textContent = 'Verifying...';
+    btn.disabled = true;
+
+    // Create a temporary image to test loading
+    const img = new Image();
+    img.onload = function () {
+        // Validation successful
+        const data = db.get();
+        data.gallery.push(url);
+        db.save(data);
+        renderGallery(data.gallery);
+        urlInput.value = '';
+        btn.textContent = originalText;
+        btn.disabled = false;
+        alert('Image added successfully!');
+    };
+    img.onerror = function () {
+        // Validation failed
+        alert('Error: Unable to load image. Please check the URL and try again. Ensure it is a direct link to an image (jpg/png).');
+        btn.textContent = originalText;
+        btn.disabled = false;
+    };
+    img.src = url;
 }
 
 function deleteGalleryImage(index) {
