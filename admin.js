@@ -34,14 +34,45 @@ function logout() {
 function initAdmin() {
     const data = db.get();
 
-    // Populate Dashboard Stats
-    document.getElementById('dash-students').textContent = data.stats.students;
-    document.getElementById('dash-enquiries').textContent = data.enquiries.length;
-    document.getElementById('dash-activities').textContent = data.activities.length;
+    // Dashboard Stats
+    if (document.getElementById('dash-students')) document.getElementById('dash-students').textContent = data.stats.students;
+    if (document.getElementById('dash-enquiries')) document.getElementById('dash-enquiries').textContent = data.enquiries.length;
+    if (document.getElementById('dash-events')) document.getElementById('dash-events').textContent = (data.events || []).length;
 
-    // Populate Enquiries Table
+    renderEnquiries(data.enquiries);
+    renderEvents(data.events || []);
+    renderGallery(data.gallery);
+
+    // Fill Settings Forms
+    if (data.contact) {
+        if (document.getElementById('set-phone')) document.getElementById('set-phone').value = data.contact.phone;
+        if (document.getElementById('set-whatsapp')) document.getElementById('set-whatsapp').value = data.contact.whatsapp;
+        if (document.getElementById('set-email')) document.getElementById('set-email').value = data.contact.email;
+        if (document.getElementById('set-address')) document.getElementById('set-address').value = data.contact.address;
+    }
+    if (data.socials) {
+        if (document.getElementById('set-fb')) document.getElementById('set-fb').value = data.socials.facebook;
+        if (document.getElementById('set-insta')) document.getElementById('set-insta').value = data.socials.instagram;
+        if (document.getElementById('set-yt')) document.getElementById('set-yt').value = data.socials.youtube;
+    }
+
+    if (data.hero) {
+        if (document.getElementById('set-hero-title')) document.getElementById('set-hero-title').value = data.hero.title;
+        if (document.getElementById('set-hero-subtitle')) document.getElementById('set-hero-subtitle').value = data.hero.subtitle;
+        if (document.getElementById('edit-hero-image')) document.getElementById('edit-hero-image').value = data.hero.image;
+    }
+
+    if (data.stats) {
+        if (document.getElementById('edit-stats-students')) document.getElementById('edit-stats-students').value = data.stats.students;
+        if (document.getElementById('edit-stats-teachers')) document.getElementById('edit-stats-teachers').value = data.stats.teachers;
+    }
+}
+
+// --- RENDERERS ---
+function renderEnquiries(enquiries) {
     const table = document.getElementById('enquiry-table');
-    table.innerHTML = data.enquiries.slice().reverse().map(req => `
+    if (!table) return;
+    table.innerHTML = enquiries.slice().reverse().map(req => `
         <tr>
             <td>${req.date || 'N/A'}</td>
             <td><strong>${req.studentName}</strong></td>
@@ -50,37 +81,123 @@ function initAdmin() {
             <td><span class="badge badge-new">New</span></td>
         </tr>
     `).join('');
-
-    // Populate Edit Fields
-    document.getElementById('edit-hero-title').value = data.hero.title;
-    document.getElementById('edit-hero-subtitle').value = data.hero.subtitle;
-    document.getElementById('edit-hero-image').value = data.hero.image;
-
-    document.getElementById('edit-stats-students').value = data.stats.students;
-    document.getElementById('edit-stats-teachers').value = data.stats.teachers;
 }
 
-// --- SAVE FUNCTIONS ---
+function renderEvents(events) {
+    const list = document.getElementById('admin-events-list');
+    if (!list) return;
+    list.innerHTML = events.map((ev, index) => `
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:10px;">
+            <div style="display:flex; gap:15px; align-items:center;">
+                <img src="${ev.image}" style="width:50px; height:50px; object-fit:cover; border-radius:5px;">
+                <div>
+                    <strong style="display:block;">${ev.title}</strong>
+                    <span style="color:#666; font-size:0.9rem;">${ev.date}</span>
+                </div>
+            </div>
+            <button class="btn btn-outline" style="padding:5px 10px; color:red; border-color:red;" onclick="deleteEvent(${index})">Delete</button>
+        </div>
+    `).join('');
+}
 
-function saveHome() {
+function renderGallery(gallery) {
+    const grid = document.getElementById('admin-gallery-grid');
+    if (!grid) return;
+    grid.innerHTML = gallery.map((img, index) => `
+        <div style="position:relative;">
+            <img src="${img}" style="width:100%; height:100px; object-fit:cover; border-radius:5px;">
+            <button onclick="deleteGalleryImage(${index})" style="position:absolute; top:5px; right:5px; background:red; color:white; border:none; border-radius:50%; width:24px; height:24px; cursor:pointer;">&times;</button>
+        </div>
+    `).join('');
+}
+
+// --- ACTIONS ---
+
+function addEvent(e) {
+    e.preventDefault();
     const data = db.get();
-    data.hero.title = document.getElementById('edit-hero-title').value;
-    data.hero.subtitle = document.getElementById('edit-hero-subtitle').value;
-    data.hero.image = document.getElementById('edit-hero-image').value;
+    if (!data.events) data.events = [];
 
+    const newEvent = {
+        id: Date.now(),
+        title: document.getElementById('new-event-title').value,
+        date: document.getElementById('new-event-date').value,
+        image: document.getElementById('new-event-img').value,
+        link: document.getElementById('new-event-link').value || '#'
+    };
+
+    data.events.push(newEvent);
     db.save(data);
-    alert('Hero Section Updated!');
+    renderEvents(data.events);
+    e.target.reset();
+    alert('Event Added');
+}
+
+function deleteEvent(index) {
+    if (!confirm('Delete this event?')) return;
+    const data = db.get();
+    data.events.splice(index, 1);
+    db.save(data);
+    renderEvents(data.events);
+}
+
+function addGalleryImage() {
+    const url = document.getElementById('new-gallery-img').value;
+    if (!url) return;
+
+    const data = db.get();
+    data.gallery.push(url);
+    db.save(data);
+    renderGallery(data.gallery);
+    document.getElementById('new-gallery-img').value = '';
+}
+
+function deleteGalleryImage(index) {
+    if (!confirm('Delete this photo?')) return;
+    const data = db.get();
+    data.gallery.splice(index, 1);
+    db.save(data);
+    renderGallery(data.gallery);
+}
+
+function saveSettings() {
+    const data = db.get();
+    data.contact = {
+        phone: document.getElementById('set-phone').value,
+        whatsapp: document.getElementById('set-whatsapp').value,
+        email: document.getElementById('set-email').value,
+        address: document.getElementById('set-address').value
+    };
+    db.save(data);
+    alert('Contact Info Saved!');
+}
+
+function saveSocials() {
+    const data = db.get();
+    data.socials = {
+        facebook: document.getElementById('set-fb').value,
+        instagram: document.getElementById('set-insta').value,
+        youtube: document.getElementById('set-yt').value
+    };
+    db.save(data);
+    alert('Social Links Saved!');
+}
+
+function saveHero() {
+    const data = db.get();
+    data.hero.title = document.getElementById('set-hero-title').value;
+    data.hero.subtitle = document.getElementById('set-hero-subtitle').value;
+    data.hero.image = document.getElementById('edit-hero-image').value;
+    db.save(data);
+    alert('Hero Section Saved!');
 }
 
 function saveStats() {
     const data = db.get();
     data.stats.students = document.getElementById('edit-stats-students').value;
     data.stats.teachers = document.getElementById('edit-stats-teachers').value;
-
     db.save(data);
-    alert('Statistics Updated!');
-    // Update dashboard instantly
-    document.getElementById('dash-students').textContent = data.stats.students;
+    alert('Stats Updated!');
 }
 
 // --- NAVIGATION ---
