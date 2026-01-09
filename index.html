@@ -135,6 +135,19 @@
         </div>
     </section>
 
+    <!-- Upcoming Events (New Section) -->
+    <section id="events-section" class="section-padding" style="background: #fff;">
+        <div class="container">
+            <div class="text-center" style="margin-bottom: 40px;">
+                <h4 class="text-gold">Calendar</h4>
+                <h2>Upcoming Events</h2>
+            </div>
+            <div id="events-grid" style="display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px;">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </section>
+
     <!-- Gallery -->
     <section id="gallery" class="section-padding" style="background-color: var(--col-primary-dark); color: white;">
         <div class="container">
@@ -163,15 +176,20 @@
                     <div style="margin-bottom: 20px;">
                         <strong style="display: block; color: var(--col-primary); margin-bottom: 5px;">📍
                             Address</strong>
-                        <p style="color: #666;">Al-Ihsan Academy Campus,<br>Kerala, India - 670001</p>
+                        <p class="app-address" style="color: #666;">Loading...</p>
                     </div>
                     <div style="margin-bottom: 20px;">
                         <strong style="display: block; color: var(--col-primary); margin-bottom: 5px;">📞 Phone</strong>
-                        <p style="color: #666;">+91 98765 43210</p>
+                        <p><a href="#" class="link-phone app-phone"
+                                style="text-decoration: none; color: #666;">Loading...</a></p>
+                        <p style="margin-top:5px;"><a href="#" class="link-whatsapp"
+                                style="color: #25D366; text-decoration: none; font-weight: bold;">Chats on WhatsApp</a>
+                        </p>
                     </div>
                     <div style="margin-bottom: 20px;">
                         <strong style="display: block; color: var(--col-primary); margin-bottom: 5px;">📧 Email</strong>
-                        <p style="color: #666;">info@alihsanacademy.com</p>
+                        <p><a href="#" class="link-email app-email"
+                                style="text-decoration: none; color: #666;">Loading...</a></p>
                     </div>
                 </div>
 
@@ -239,9 +257,9 @@
                 <div>
                     <h4>Connect</h4>
                     <ul>
-                        <li><a href="#">Facebook</a></li>
-                        <li><a href="#">Instagram</a></li>
-                        <li><a href="#">YouTube</a></li>
+                        <li><a href="#" class="link-fb">Facebook</a></li>
+                        <li><a href="#" class="link-insta">Instagram</a></li>
+                        <li><a href="#" class="link-yt">YouTube</a></li>
                     </ul>
                 </div>
             </div>

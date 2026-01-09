@@ -5,10 +5,25 @@
 
 // --- DATA LAYER ---
 const DEFAULT_DATA = {
+    // --- GLOBAL SETTINGS ---
+    contact: {
+        address: "Al-Ihsan Academy Campus, Kerala, India - 670001",
+        phone: "+91 98765 43210",
+        whatsapp: "+91 98765 43210",
+        email: "info@alihsanacademy.com"
+    },
+    socials: {
+        facebook: "#",
+        instagram: "#",
+        youtube: "#"
+    },
+    // --- PAGES ---
     hero: {
         title: "Welcome to AL-IHSAN Academy",
         subtitle: '"Building a Generation for Tomorrow"',
-        image: "hero-bg.jpg"
+        image: "hero-bg.jpg",
+        ctaText: "Read More",
+        ctaLink: "#about"
     },
     about: {
         title: "About Us",
@@ -20,6 +35,10 @@ const DEFAULT_DATA = {
         teachers: 40,
         classes: 10
     },
+    events: [
+        { id: 1, title: "Admission Open Day", date: "June 15, 2026", image: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=500", link: "#" },
+        { id: 2, title: "Islamic Arts Fest", date: "July 20, 2026", image: "https://images.unsplash.com/photo-1582662055627-2c96c4832e18?w=500", link: "#" }
+    ],
     activities: [
         { title: "Annual Sports Day", date: "Jan 15, 2026", desc: "Celebrating physical fitness and teamwork.", img: "https://images.unsplash.com/photo-1576678927484-cc907957088c?auto=format&fit=crop&q=80&w=500" },
         { title: "Quran Recitation", date: "Feb 10, 2026", desc: "Annual inter-class competition.", img: "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?auto=format&fit=crop&q=80&w=500" },
@@ -106,10 +125,49 @@ function initContent() {
     const galleryGrid = document.getElementById('gallery-grid');
     if (galleryGrid) {
         galleryGrid.innerHTML = data.gallery.map(img => `
-          <div style="border-radius: 8px; overflow: hidden; height: 250px;">
+          <div style="border-radius: 8px; overflow: hidden; height: 180px; position:relative;">
               <img src="${img}" style="width: 100%; height: 100%; object-fit: cover; transition: 0.3s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
           </div>
       `).join('');
+    }
+
+    // --- NEW SECTIONS RENDER ---
+
+    // 1. Upcoming Events
+    const eventsGrid = document.getElementById('events-grid');
+    if (eventsGrid && data.events) {
+        if (data.events.length === 0) {
+            document.getElementById('events-section').style.display = 'none';
+        } else {
+            eventsGrid.innerHTML = data.events.map(ev => `
+                <div class="event-card">
+                    <div style="height: 150px; background: url('${ev.image}') center/cover;"></div>
+                    <div style="padding: 15px;">
+                        <span style="color: var(--col-primary); font-weight: bold; font-size: 0.8rem;">${ev.date}</span>
+                        <h4 style="margin: 5px 0;">${ev.title}</h4>
+                        <a href="${ev.link}" class="btn-text">Details &rarr;</a>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+
+    // 2. Contact Info (Footer & Page)
+    document.querySelectorAll('.app-phone').forEach(el => el.textContent = data.contact.phone);
+    document.querySelectorAll('.app-email').forEach(el => el.textContent = data.contact.email);
+    document.querySelectorAll('.app-address').forEach(el => el.textContent = data.contact.address);
+
+    // Dynamic Links
+    const waLink = `https://wa.me/${data.contact.whatsapp.replace(/[^0-9]/g, '')}`;
+    document.querySelectorAll('.link-whatsapp').forEach(el => el.href = waLink);
+    document.querySelectorAll('.link-phone').forEach(el => el.href = `tel:${data.contact.phone}`);
+    document.querySelectorAll('.link-email').forEach(el => el.href = `mailto:${data.contact.email}`);
+
+    // Socials
+    if (data.socials) {
+        document.querySelectorAll('.link-fb').forEach(el => el.href = data.socials.facebook);
+        document.querySelectorAll('.link-insta').forEach(el => el.href = data.socials.instagram);
+        document.querySelectorAll('.link-yt').forEach(el => el.href = data.socials.youtube);
     }
 }
 
