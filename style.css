@@ -344,34 +344,53 @@ header.scrolled {
 
 .about-text {
   flex: 1;
-  text-align: center;
-  /* Center align container content by default */
 }
 
-.about-text h3 {
-  margin-bottom: 20px;
+/* New Content Box Style */
+.about-desc-box {
+  background: #ffffff;
+  padding: 40px;
+  /* Generous padding */
+  border-radius: 30px;
+  /* Distinctly curved edges */
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  /* Soft depth */
+  border: 1px solid rgba(0, 0, 0, 0.02);
+  margin-bottom: 30px;
+  text-align: left;
+  /* Reset container alignment */
 }
 
-/* Specific alignments for dynamic content */
-#about-text p {
+/* "Proper Alignment" - Justified text for neat box look */
+.about-desc-box p {
+  text-align: justify;
+  line-height: 1.8;
+  /* Improve readability */
+  color: #555;
+  margin-bottom: 15px;
+}
+
+.about-desc-box h3 {
   text-align: center;
+  /* Heading remains centered */
+  margin-bottom: 25px;
+  color: var(--col-primary-dark);
+  font-weight: 700;
 }
 
 #about-text h4,
 #about-text ul {
   text-align: left;
-  /* Explicitly keep features left aligned */
+  padding-left: 10px;
 }
 
 .about-image {
-  flex: 0 0 200px;
-  /* Fixed compact width */
+  flex: 0 0 270px;
+  /* Increased from 200px (+35%) */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  /* Fills height from top to bottom */
-  gap: 10px;
-  /* Removed fixed height and shadows from container */
+  gap: 15px;
 }
 
 .about-image img {
