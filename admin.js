@@ -3,29 +3,70 @@
  */
 
 // --- AUTHENTICATION ---
-const LOGIN_KEY = 'alIhsanAdminLogged';
+let inactivityTimer;
+
+function resetInactivityTimer() {
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(() => {
+        alert('Session expired due to inactivity.');
+        logout();
+    }, 15 * 60 * 1000); // 15 Minutes
+}
 
 function checkAuth() {
-    if (sessionStorage.getItem(LOGIN_KEY) === 'true') {
+    // We check a non-http-only flag for UI state, 
+    // but the API/Middleware enforces the real security.
+    if (localStorage.getItem('alIhsanAdminLogged') === 'true') {
         document.getElementById('login-overlay').style.display = 'none';
         document.getElementById('admin-app').style.display = 'flex';
         initAdmin();
+        resetInactivityTimer();
+        // Listen for activity
+        ['mousedown', 'keydown', 'scroll', 'touchstart'].forEach(e => {
+            document.addEventListener(e, resetInactivityTimer);
+        });
     }
 }
 
-document.getElementById('login-form').addEventListener('submit', (e) => {
+document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const pass = document.getElementById('password').value;
-    if (pass === 'admin123') {
-        sessionStorage.setItem(LOGIN_KEY, 'true');
-        checkAuth();
-    } else {
-        alert('Invalid Password');
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const btn = document.getElementById('login-btn');
+    const errorMsg = document.getElementById('login-error');
+
+    btn.disabled = true;
+    btn.textContent = 'Verifying...';
+    errorMsg.style.display = 'none';
+
+    try {
+        const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        const result = await res.json();
+
+        if (res.ok && result.success) {
+            localStorage.setItem('alIhsanAdminLogged', 'true');
+            window.location.reload(); // Refresh to let middleware confirm
+        } else {
+            errorMsg.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Verify Identity';
+        }
+    } catch (err) {
+        errorMsg.textContent = 'Connection error. Please try again.';
+        errorMsg.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Verify Identity';
     }
 });
 
-function logout() {
-    sessionStorage.removeItem(LOGIN_KEY);
+async function logout() {
+    await fetch('/api/logout');
+    localStorage.removeItem('alIhsanAdminLogged');
     window.location.reload();
 }
 
