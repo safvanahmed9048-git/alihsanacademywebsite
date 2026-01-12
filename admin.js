@@ -30,13 +30,13 @@ function checkAuth() {
 
 document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('email').value;
+    const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
     const btn = document.getElementById('login-btn');
     const errorMsg = document.getElementById('login-error');
 
     btn.disabled = true;
-    btn.textContent = 'Verifying...';
+    btn.textContent = 'Authenticating...';
     errorMsg.style.display = 'none';
 
     try {
@@ -50,14 +50,19 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
 
         if (res.ok && result.success) {
             localStorage.setItem('alIhsanAdminLogged', 'true');
-            window.location.reload(); // Refresh to let middleware confirm
+            // Force reload to let middleware confirm session
+            window.location.href = '/admin.html';
         } else {
+            // Requirement: Generic error for unauthorized or bad creds
+            errorMsg.textContent = result.error || 'You are not authorized to access the admin panel.';
             errorMsg.style.display = 'block';
             btn.disabled = false;
             btn.textContent = 'Verify Identity';
+            // Clear password on failure
+            document.getElementById('password').value = '';
         }
     } catch (err) {
-        errorMsg.textContent = 'Connection error. Please try again.';
+        errorMsg.textContent = 'A secure connection could not be established. Please try again.';
         errorMsg.style.display = 'block';
         btn.disabled = false;
         btn.textContent = 'Verify Identity';
