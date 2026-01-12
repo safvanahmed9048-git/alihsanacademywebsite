@@ -1,15 +1,17 @@
 export default function middleware(request) {
     const { pathname } = new URL(request.url);
 
-    // Protect admin.html and all CMS/Admin APIs
-    if (pathname.startsWith('/admin.html') || pathname.startsWith('/api/admin')) {
+    // Protect only the administrative API routes
+    // (Add any other sensitive paths here that aren't the login page itself)
+    if (pathname.startsWith('/api/admin') || pathname.startsWith('/api/protected')) {
         const cookieHeader = request.headers.get('cookie') || '';
         const hasToken = cookieHeader.includes('al_ihsan_token');
 
         if (!hasToken) {
-            // Unauthenticated access attempt
-            // Redirect to home or login page
-            return Response.redirect(new URL('/index.html', request.url), 307);
+            return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+                status: 401,
+                headers: { 'Content-Type': 'application/json' }
+            });
         }
     }
 
