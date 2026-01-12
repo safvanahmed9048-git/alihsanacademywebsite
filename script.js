@@ -62,8 +62,45 @@ const DEFAULT_DATA = {
         families: 1000
     },
     events: [
-        { id: 1, title: "Admission Open Day", date: "June 15, 2026", image: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=500", link: "#" },
-        { id: 2, title: "Islamic Arts Fest", date: "July 20, 2026", image: "https://images.unsplash.com/photo-1582662055627-2c96c4832e18?w=500", link: "#" }
+        {
+            id: 1,
+            title: "Admission Open Day 2026",
+            date: "June 15, 2026",
+            time: "10:00 AM - 4:00 PM",
+            description: "Join us for our annual open day! Meet our teachers, tour our facilities, and learn about our curriculum.",
+            image: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&q=80",
+            location: "Main Campus, UK",
+            isNew: true,
+            isVisible: true,
+            order: 1,
+            link: "#contact"
+        },
+        {
+            id: 2,
+            title: "Islamic Arts & Culture Festival",
+            date: "July 20, 2026",
+            time: "2:00 PM - 8:00 PM",
+            description: "Celebrate Islamic heritage through art, calligraphy, and cultural performances.",
+            image: "https://images.unsplash.com/photo-1582662055627-2c96c4832e18?w=800&q=80",
+            location: "Community Hall",
+            isNew: false,
+            isVisible: true,
+            order: 2,
+            link: "#contact"
+        },
+        {
+            id: 3,
+            title: "Quran Recitation Competition",
+            date: "August 5, 2026",
+            time: "3:00 PM - 6:00 PM",
+            description: "Annual Quran recitation competition for students of all ages. Prizes for winners!",
+            image: "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?w=800&q=80",
+            location: "Online & In-Person",
+            isNew: true,
+            isVisible: true,
+            order: 3,
+            link: "#contact"
+        }
     ],
     activities: [
         { title: "Annual Sports Day", date: "Jan 15, 2026", desc: "Celebrating physical fitness and teamwork.", img: "https://images.unsplash.com/photo-1576678927484-cc907957088c?auto=format&fit=crop&q=80&w=500" },
@@ -356,30 +393,54 @@ function renderEvents() {
 
     if (!container) return;
 
-    if (!data.events || data.events.length === 0) {
+    // Filter visible events and sort by order
+    const visibleEvents = (data.events || [])
+        .filter(event => event.isVisible !== false)
+        .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    if (visibleEvents.length === 0) {
         container.innerHTML = '<p style="text-align: center; color: #999; padding: 60px 0;">No upcoming events at the moment. Check back soon!</p>';
         return;
     }
 
-    container.innerHTML = data.events.map(event => `
-        <div class="event-card">
-            <img src="${event.image || 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=500'}" alt="${event.title}" class="event-banner">
-            ${event.isNew ? '<span class="event-badge">New</span>' : ''}
+    container.innerHTML = visibleEvents.map((event, index) => `
+        <div class="event-card" style="animation-delay: ${index * 0.1}s;" data-event-id="${event.id}">
+            <div class="event-image-wrapper">
+                <img 
+                    src="${event.image || 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&q=80'}" 
+                    alt="${event.title}" 
+                    class="event-banner"
+                    loading="lazy"
+                >
+                ${event.isNew ? '<span class="event-badge">New</span>' : ''}
+            </div>
             <div class="event-content">
-                <span class="event-date">${event.date}</span>
+                <div class="event-meta">
+                    <span class="event-date">📅 ${event.date}</span>
+                    ${event.time ? `<span class="event-time">🕐 ${event.time}</span>` : ''}
+                </div>
                 <h3 class="event-title">${event.title}</h3>
                 <p class="event-desc">${event.description || 'Join us for this special event!'}</p>
                 <div class="event-footer">
                     <span class="event-location">📍 ${event.location || 'Online'}</span>
-                    <a href="${event.link || '#contact'}" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.85rem;">Learn More</a>
+                    <a href="${event.link || '#contact'}" class="event-btn">
+                        Learn More →
+                    </a>
                 </div>
             </div>
         </div>
     `).join('');
+
+    // Add stagger animation
+    const cards = container.querySelectorAll('.event-card');
+    cards.forEach((card, i) => {
+        setTimeout(() => {
+            card.classList.add('visible');
+        }, i * 100);
+    });
 }
 
 // Initialize events on page load
 if (document.getElementById('events-container')) {
     renderEvents();
 }
-
