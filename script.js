@@ -7,10 +7,10 @@
 const DEFAULT_DATA = {
     // --- GLOBAL SETTINGS ---
     contact: {
-        address: "Al-Ihsan Academy Campus, Kerala, India - 670001",
-        phone: "+91 98765 43210",
-        whatsapp: "+91 98765 43210",
-        email: "info@alihsanacademy.com"
+        address: "Al-Ihsan Academy, United Kingdom",
+        phone: "+44 7783 063060",
+        whatsapp: "+44 7783 063060",
+        email: "academy@alihsan.co.uk"
     },
     socials: {
         facebook: "#",
@@ -113,6 +113,15 @@ if (!currentData.about.content.includes('about-desc-box')) {
 // Force update stats if they are missing new keys (alumni)
 if (!currentData.stats.alumni) {
     currentData.stats = DEFAULT_DATA.stats;
+    dataChanged = true;
+}
+
+// Force update core contact info to latest
+if (currentData.contact.email === "info@alihsanacademy.com" || currentData.contact.email === "alihsanacademyuk@gmail.com") {
+    currentData.contact.email = DEFAULT_DATA.contact.email;
+    currentData.contact.phone = DEFAULT_DATA.contact.phone;
+    currentData.contact.whatsapp = DEFAULT_DATA.contact.whatsapp;
+    currentData.contact.address = DEFAULT_DATA.contact.address;
     dataChanged = true;
 }
 
