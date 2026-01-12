@@ -46,7 +46,13 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
         'academy@alihsan.co.uk'
     ];
 
-    // Check email allowlist first
+    // Password
+    const ADMIN_PASSWORD = 'Academy@01012026';
+
+    // Simulate a small delay for UX
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Check email allowlist
     if (!ALLOWED_EMAILS.includes(email)) {
         errorMsg.textContent = 'You are not authorized to access the admin panel.';
         errorMsg.style.display = 'block';
@@ -56,44 +62,20 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
         return;
     }
 
-    try {
-        // Try API first
-        const res = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-        });
-
-        const result = await res.json();
-
-        if (res.ok && result.success) {
-            localStorage.setItem('alIhsanAdminLogged', 'true');
-            window.location.href = '/admin.html';
-        } else {
-            errorMsg.textContent = result.error || 'You are not authorized to access the admin panel.';
-            errorMsg.style.display = 'block';
-            btn.disabled = false;
-            btn.textContent = 'Verify Identity';
-            document.getElementById('password').value = '';
-        }
-    } catch (err) {
-        // Fallback to client-side check if API fails
-        console.warn('API login failed, using fallback authentication');
-
-        // Temporary password check (will be replaced by API once env vars are set)
-        const correctPassword = 'Academy@01012026';
-
-        if (password === correctPassword) {
-            localStorage.setItem('alIhsanAdminLogged', 'true');
-            checkAuth();
-        } else {
-            errorMsg.textContent = 'You are not authorized to access the admin panel.';
-            errorMsg.style.display = 'block';
-            btn.disabled = false;
-            btn.textContent = 'Verify Identity';
-            document.getElementById('password').value = '';
-        }
+    // Check password
+    if (password !== ADMIN_PASSWORD) {
+        errorMsg.textContent = 'You are not authorized to access the admin panel.';
+        errorMsg.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Verify Identity';
+        document.getElementById('password').value = '';
+        return;
     }
+
+    // Success
+    localStorage.setItem('alIhsanAdminLogged', 'true');
+    localStorage.setItem('adminEmail', email);
+    checkAuth();
 });
 
 async function logout() {
