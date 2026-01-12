@@ -8,7 +8,8 @@
     <title>AL-IHSAN Academy</title>
     <link rel="stylesheet" href="style.css">
     <!-- Favicon placeholder -->
-    <link rel="icon" href="favicon.jpg">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕌</text></svg>">
 </head>
 
 <body>
@@ -23,15 +24,41 @@
                 <ul>
                     <li><a href="#home">Home</a></li>
                     <li><a href="#about">About Us</a></li>
+                    <li><a href="#events">Upcoming Events</a></li>
                     <li><a href="#academics">Academics</a></li>
                     <li><a href="#gallery">Gallery</a></li>
                     <li><a href="#social-connect">Social Connect</a></li>
                     <li><a href="#get-in-touch">Contact</a></li>
                 </ul>
             </nav>
-            <a href="#contact" class="btn btn-primary btn-pulse">Admission Enquiry</a>
+            <div class="header-actions">
+                <a href="#contact" class="btn btn-primary btn-pulse hide-mobile">Admission Enquiry</a>
+                <button class="mobile-nav-toggle" aria-label="Toggle Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
         </div>
     </header>
+
+    <!-- Mobile Nav Overlay -->
+    <div class="mobile-nav-overlay">
+        <div class="mobile-nav-content">
+            <button class="mobile-nav-close">&times;</button>
+            <ul class="mobile-nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About Us</a></li>
+                <li><a href="#events">Upcoming Events</a></li>
+                <li><a href="#academics">Academics</a></li>
+                <li><a href="#gallery">Gallery</a></li>
+                <li><a href="#social-connect">Social Connect</a></li>
+                <li><a href="#get-in-touch">Contact</a></li>
+                <li style="margin-top: 20px;"><a href="#contact" class="btn btn-primary"
+                        style="width: 100%; text-align: center;">Admission Enquiry</a></li>
+            </ul>
+        </div>
+    </div>
 
     <!-- Home Section -->
     <section id="home" class="hero">
