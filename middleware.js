@@ -1,23 +1,24 @@
-export default function middleware(request) {
-    const { pathname } = new URL(request.url);
+import { NextResponse } from 'next/server';
 
-    // Protect only the administrative API routes
-    // (Add any other sensitive paths here that aren't the login page itself)
-    if (pathname.startsWith('/api/admin') || pathname.startsWith('/api/protected')) {
-        const cookieHeader = request.headers.get('cookie') || '';
-        const hasToken = cookieHeader.includes('al_ihsan_token');
+export function middleware(request) {
+    const { pathname } = request.nextUrl;
 
-        if (!hasToken) {
-            return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-                status: 401,
-                headers: { 'Content-Type': 'application/json' }
-            });
+    // Protect admin.html and all CMS/Admin APIs
+    if (pathname.startsWith('/admin.html') || pathname.startsWith('/api/admin')) {
+        const token = request.cookies.get('al_ihsan_token')?.value;
+
+        if (!token) {
+            // Unauthenticated access attempt
+            const url = request.nextUrl.clone();
+            url.pathname = '/'; // Redirect to home or a login page
+            // For this specific setup where admin is an overlay on admin.html, 
+            // the overlay handles the UI, but we block data via API.
+            // However, enterprise-grade means we should ideally redirect or block.
+            return NextResponse.redirect(new URL('/index.html', request.url));
         }
     }
 
-    return new Response(null, {
-        headers: { 'x-middleware-next': '1' }
-    });
+    return NextResponse.next();
 }
 
 export const config = {
