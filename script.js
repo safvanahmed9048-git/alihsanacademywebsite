@@ -321,3 +321,65 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         }
     });
 });
+
+// --- MOBILE NAVIGATION ---
+const mobileToggle = document.querySelector('.mobile-nav-toggle');
+const mobileOverlay = document.querySelector('.mobile-nav-overlay');
+const mobileClose = document.querySelector('.mobile-nav-close');
+const mobileLinks = document.querySelectorAll('.mobile-nav-links a');
+
+if (mobileToggle) {
+    mobileToggle.addEventListener('click', () => {
+        mobileOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    });
+}
+
+if (mobileClose) {
+    mobileClose.addEventListener('click', () => {
+        mobileOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    });
+}
+
+mobileLinks.forEach(link => {
+    link.addEventListener('click', () => {
+        mobileOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    });
+});
+
+// --- RENDER EVENTS ---
+function renderEvents() {
+    const data = db.get();
+    const container = document.getElementById('events-container');
+
+    if (!container) return;
+
+    if (!data.events || data.events.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #999; padding: 60px 0;">No upcoming events at the moment. Check back soon!</p>';
+        return;
+    }
+
+    container.innerHTML = data.events.map(event => `
+        <div class="event-card">
+            <img src="${event.image || 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=500'}" alt="${event.title}" class="event-banner">
+            ${event.isNew ? '<span class="event-badge">New</span>' : ''}
+            <div class="event-content">
+                <span class="event-date">${event.date}</span>
+                <h3 class="event-title">${event.title}</h3>
+                <p class="event-desc">${event.description || 'Join us for this special event!'}</p>
+                <div class="event-footer">
+                    <span class="event-location">📍 ${event.location || 'Online'}</span>
+                    <a href="${event.link || '#contact'}" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.85rem;">Learn More</a>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Initialize events on page load
+if (document.getElementById('events-container')) {
+    renderEvents();
+}
+
