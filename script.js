@@ -506,23 +506,59 @@ function renderEvents() {
 
     if (!container) return;
 
-    // Filter visible events and sort by order
+    // Get current date (midnight for fair comparison)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Filter visible AND future/today events
     const visibleEvents = (data.events || [])
-        .filter(event => event.isVisible !== false)
-        .sort((a, b) => (a.order || 0) - (b.order || 0));
+        .filter(event => {
+            if (event.isVisible === false) return false;
+
+            // Auto-Expiry Logic
+            // Try to parse the date. Supports "June 15, 2026" and "2026-06-15"
+            const eventDate = new Date(event.date);
+            if (isNaN(eventDate.getTime())) return true; // Keep if invalid date to avoid accidental hiding
+
+            // If event date is in the past (yesterday or before), hide it
+            // We compare: if eventDate < today (midnight), it's expired.
+            // Actually, usually events on the day itself should still show. 
+            // So expired if eventDate < today (meaning yesterday).
+            // But if event.date includes time, logic might vary. Assuming simpler date-only for now.
+            return eventDate >= today;
+        })
+        .sort((a, b) => {
+            // Sort by Order first, then by earliest date
+            const orderDiff = (a.order || 0) - (b.order || 0);
+            if (orderDiff !== 0) return orderDiff;
+            return new Date(a.date) - new Date(b.date);
+        });
 
     if (visibleEvents.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: #999; padding: 60px 0;">No upcoming events at the moment.</p>';
+        container.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
+                <h3 style="color: var(--col-primary); font-size: 1.5rem; margin-bottom: 10px;">Stay Tuned!</h3>
+                <p style="color: #666; font-size: 1.1rem;">Upcoming event details will be published here.</p>
+            </div>
+        `;
         return;
     }
 
     // Prep images for lightbox
     const eventsForLightbox = visibleEvents; // Passed by reference, full objects
 
-    container.innerHTML = visibleEvents.map((event, index) => `
+    container.innerHTML = visibleEvents.map((event, index) => {
+        // Format display date nicely if ISO string
+        let displayDate = event.date;
+        const d = new Date(event.date);
+        if (!isNaN(d.getTime())) {
+            displayDate = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        return `
         <div class="event-card" 
              style="animation-delay: ${index * 0.1}s;" 
-             onclick="openLightbox(db.get().events.filter(e => e.isVisible !== false).sort((a, b) => (a.order || 0) - (b.order || 0)), ${index})">
+             onclick="openLightbox(db.get().events.filter(e => e.isVisible !== false && new Date(e.date) >= new Date().setHours(0,0,0,0)).sort((a, b) => (a.order || 0) - (b.order || 0)), ${index})">
             
             <div class="event-image-wrapper">
                 <img 
@@ -538,14 +574,13 @@ function renderEvents() {
                 <div>
                     <h3 class="event-title">${event.title}</h3>
                     <div class="event-date">
-                        <span>📅</span> ${event.date}
+                        <span>📅</span> ${displayDate}
                     </div>
-                    ${event.description ? `<p class="event-desc-short">${event.description}</p>` : ''}
                 </div>
             </div>
             <div class="ripple-container"></div>
         </div>
-    `).join('');
+    `}).join('');
 
     // Add Stagger & Lazy Loading
     setTimeout(() => {
