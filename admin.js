@@ -140,6 +140,20 @@ function renderEnquiries(enquiries) {
     `).join('');
 }
 
+function renderGallery(images) {
+    const grid = document.getElementById('admin-gallery-grid');
+    if (!grid) return;
+    grid.innerHTML = (images || []).map((img, index) => `
+        <div style="position:relative; aspect-ratio:1; border-radius:8px; overflow:hidden; group:hover .overlay {opacity:1}">
+            <img src="${img}" style="width:100%; height:100%; object-fit:cover;">
+            <div style="position:absolute; inset:0; background:rgba(0,0,0,0.5); opacity:0; transition:0.2s; display:flex; align-items:center; justify-content:center; cursor:pointer;"
+                 onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
+                <button onclick="deleteGalleryImage(${index})" style="background:red; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Delete</button>
+            </div>
+        </div>
+    `).join('');
+}
+
 // --- EVENTS MANAGEMENT ---
 
 function renderEvents(events) {
