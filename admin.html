@@ -228,25 +228,44 @@
             <!-- SECTION: Events Management -->
             <div id="edit-events" class="content-section" style="display: none;">
                 <h1 style="margin-bottom: 30px;">Manage Events</h1>
+
+                <!-- Add/Edit Form -->
                 <div class="card">
-                    <h3>Add New Event</h3>
-                    <form onsubmit="addEvent(event)">
-                        <div style="display:flex; gap:10px;">
-                            <input type="text" id="new-event-title" placeholder="Event Title" class="form-control"
-                                required>
-                            <input type="text" id="new-event-date" placeholder="Date (e.g. July 20, 2026)"
-                                class="form-control" required>
+                    <h3 id="event-form-title">Add New Event</h3>
+                    <form onsubmit="handleEventSubmit(event)">
+                        <input type="hidden" id="event-id">
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <div class="form-group" style="flex:1; min-width:200px;">
+                                <label>Title</label>
+                                <input type="text" id="event-title" class="form-control" required>
+                            </div>
+                            <div class="form-group" style="flex:1; min-width:200px;">
+                                <label>Date (e.g. July 20)</label>
+                                <input type="text" id="event-date" class="form-control" required>
+                            </div>
                         </div>
-                        <div style="display:flex; gap:10px; margin-top:10px;">
-                            <input type="text" id="new-event-img" placeholder="Image URL (http://...)"
-                                class="form-control" required>
-                            <input type="text" id="new-event-link" placeholder="Details Link (Optional)"
-                                class="form-control">
-                            <button type="submit" class="btn btn-primary">Add Event</button>
+                        <div style="margin-top:10px;">
+                            <label>Description</label>
+                            <textarea id="event-desc" class="form-control" rows="2"></textarea>
+                        </div>
+                        <div style="margin-top:10px;">
+                            <label>Image URL</label>
+                            <input type="text" id="event-img" class="form-control" required placeholder="https://...">
+                        </div>
+                        <div style="margin-top:10px; display:flex; gap:10px;">
+                            <label><input type="checkbox" id="event-new"> Mark as 'New'</label>
+                            <label><input type="checkbox" id="event-visible" checked> Visible</label>
+                        </div>
+                        <div style="margin-top:15px; display:flex; gap:10px;">
+                            <button type="submit" class="btn btn-primary" id="event-submit-btn">Add Event</button>
+                            <button type="button" class="btn btn-outline" onclick="resetEventForm()"
+                                id="event-cancel-btn" style="display:none;">Cancel Edit</button>
                         </div>
                     </form>
                 </div>
-                <div id="admin-events-list">
+
+                <!-- Events List -->
+                <div id="admin-events-list" style="display: grid; gap: 15px;">
                     <!-- Populated JS -->
                 </div>
             </div>

@@ -214,23 +214,10 @@ function initContent() {
 
     // --- NEW SECTIONS RENDER ---
 
-    // 1. Upcoming Events
-    const eventsGrid = document.getElementById('events-grid');
-    if (eventsGrid && data.events) {
-        if (data.events.length === 0) {
-            document.getElementById('events-section').style.display = 'none';
-        } else {
-            eventsGrid.innerHTML = data.events.map(ev => `
-                <div class="event-card">
-                    <div style="height: 150px; background: url('${ev.image}') center/cover;"></div>
-                    <div style="padding: 15px;">
-                        <span style="color: var(--col-primary); font-weight: bold; font-size: 0.8rem;">${ev.date}</span>
-                        <h4 style="margin: 5px 0;">${ev.title}</h4>
-                        <a href="${ev.link}" class="btn-text">Details &rarr;</a>
-                    </div>
-                </div>
-            `).join('');
-        }
+    // 1. Upcoming Events - RENDERED SEPARATELY IN renderEvents() to keep initContent clean
+    if (data.events && data.events.length === 0) {
+        const evSection = document.getElementById('events-section');
+        if (evSection) evSection.style.display = 'none';
     }
 
     // 2. Contact Info (Footer & Page)
@@ -312,27 +299,157 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- LIGHTBOX LOGIC ---
-function openLightbox(imgSrc) {
+// --- LIGHTBOX LOGIC ---
+let currentLightboxIndex = -1;
+let lightboxImages = [];
+
+function initLightboxHTML() {
+    if (document.getElementById('lightbox')) return;
+
+    const div = document.createElement('div');
+    div.id = 'lightbox';
+    div.className = 'lightbox';
+    div.innerHTML = `
+        <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+        <div class="lightbox-nav lightbox-prev" onclick="changeLightboxImage(-1)">&#10094;</div>
+        <div class="lightbox-nav lightbox-next" onclick="changeLightboxImage(1)">&#10095;</div>
+        <div class="lightbox-content-wrapper" id="lightbox-wrapper">
+            <img class="lightbox-img" id="lightbox-img" src="" alt="Full view">
+        </div>
+        <div class="interaction-hint">Double tap to zoom • Swipe to navigate</div>
+    `;
+    document.body.appendChild(div);
+
+    // Initial Event Listeners
+    div.addEventListener('click', (e) => {
+        if (e.target === div || e.target.classList.contains('lightbox-content-wrapper')) {
+            closeLightbox();
+        }
+    });
+
+    initLightboxGestures();
+}
+
+function openLightbox(source, index = -1) {
+    initLightboxHTML(); // Ensure HTML exists
     const lightbox = document.getElementById('lightbox');
-    const lightboxImg = document.getElementById('lightbox-img');
-    if (lightbox && lightboxImg) {
-        lightboxImg.src = imgSrc;
-        lightbox.classList.add('active');
-        document.body.style.overflow = 'hidden'; // Prevent scrolling
+    const img = document.getElementById('lightbox-img');
+
+    // Determine input type
+    if (typeof source === 'string') {
+        // Single image URL string (legacy/gallery support)
+        lightboxImages = [source];
+        currentLightboxIndex = 0;
+    } else if (Array.isArray(source)) {
+        // Array of objects or strings
+        lightboxImages = source;
+        currentLightboxIndex = index;
     }
+
+    updateLightboxImage();
+
+    lightbox.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function updateLightboxImage() {
+    const img = document.getElementById('lightbox-img');
+    if (currentLightboxIndex < 0) currentLightboxIndex = 0;
+    if (currentLightboxIndex >= lightboxImages.length) currentLightboxIndex = lightboxImages.length - 1;
+
+    let src = typeof lightboxImages[currentLightboxIndex] === 'string'
+        ? lightboxImages[currentLightboxIndex]
+        : lightboxImages[currentLightboxIndex].image;
+
+    // Reset Zoom
+    resetZoom(img);
+
+    img.style.opacity = '0.5';
+    img.src = src;
+    setTimeout(() => img.style.opacity = '1', 200);
+}
+
+function changeLightboxImage(dir) {
+    if (lightboxImages.length <= 1) return;
+
+    currentLightboxIndex += dir;
+    // Loop
+    if (currentLightboxIndex >= lightboxImages.length) currentLightboxIndex = 0;
+    if (currentLightboxIndex < 0) currentLightboxIndex = lightboxImages.length - 1;
+
+    updateLightboxImage();
 }
 
 function closeLightbox() {
     const lightbox = document.getElementById('lightbox');
     if (lightbox) {
         lightbox.classList.remove('active');
-        document.body.style.overflow = 'auto'; // Restore scrolling
+        document.body.style.overflow = '';
     }
 }
 
-// Close lightbox on Escape key
+// Zoom & Swipe Logic
+function initLightboxGestures() {
+    const img = document.getElementById('lightbox-img');
+    const wrapper = document.getElementById('lightbox-wrapper');
+
+    let scale = 1;
+    let panning = false;
+    let pointX = 0;
+    let pointY = 0;
+    let startX = 0;
+    let startY = 0;
+
+    // Swipe Vars
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    // Zoom Handlers
+    img.addEventListener('dblclick', (e) => {
+        if (scale === 1) {
+            scale = 2;
+            img.classList.add('zoomed');
+            img.style.transform = `scale(${scale})`;
+        } else {
+            resetZoom(img);
+        }
+    });
+
+    // Mobile Swipe for Navigation (only if not zoomed)
+    wrapper.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    wrapper.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, { passive: true });
+
+    function handleSwipe() {
+        if (scale > 1) return; // Don't swipe nav if zoomed
+
+        const threshold = 50;
+        if (touchEndX < touchStartX - threshold) changeLightboxImage(1); // Swipe Left -> Next
+        if (touchEndX > touchStartX + threshold) changeLightboxImage(-1); // Swipe Right -> Prev
+    }
+
+    function resetZoom(el) {
+        scale = 1;
+        panning = false;
+        pointX = 0;
+        pointY = 0;
+        el.style.transform = `translate(0px, 0px) scale(1)`;
+        el.classList.remove('zoomed');
+    }
+}
+
+// Keyboard nav
 document.addEventListener('keydown', (e) => {
+    if (!document.getElementById('lightbox')?.classList.contains('active')) return;
+
     if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowRight') changeLightboxImage(1);
+    if (e.key === 'ArrowLeft') changeLightboxImage(-1);
 });
 
 // --- SMOOTH SCROLL & HIGHLIGHT ---
@@ -399,45 +516,60 @@ function renderEvents() {
         .sort((a, b) => (a.order || 0) - (b.order || 0));
 
     if (visibleEvents.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: #999; padding: 60px 0;">No upcoming events at the moment. Check back soon!</p>';
+        container.innerHTML = '<p style="text-align: center; color: #999; padding: 60px 0;">No upcoming events at the moment.</p>';
         return;
     }
 
+    // Prep images for lightbox
+    const eventsForLightbox = visibleEvents; // Passed by reference, full objects
+
     container.innerHTML = visibleEvents.map((event, index) => `
-        <div class="event-card" style="animation-delay: ${index * 0.1}s;" data-event-id="${event.id}">
+        <div class="event-card" 
+             style="animation-delay: ${index * 0.1}s;" 
+             onclick="openLightbox(db.get().events.filter(e => e.isVisible !== false).sort((a, b) => (a.order || 0) - (b.order || 0)), ${index})">
+            
             <div class="event-image-wrapper">
                 <img 
-                    src="${event.image || 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&q=80'}" 
+                    data-src="${event.image}" 
+                    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
                     alt="${event.title}" 
-                    class="event-banner"
-                    loading="lazy"
+                    class="event-banner lazy-img"
                 >
                 ${event.isNew ? '<span class="event-badge">New</span>' : ''}
             </div>
+            
             <div class="event-content">
-                <div class="event-meta">
-                    <span class="event-date">📅 ${event.date}</span>
-                    ${event.time ? `<span class="event-time">🕐 ${event.time}</span>` : ''}
-                </div>
-                <h3 class="event-title">${event.title}</h3>
-                <p class="event-desc">${event.description || 'Join us for this special event!'}</p>
-                <div class="event-footer">
-                    <span class="event-location">📍 ${event.location || 'Online'}</span>
-                    <a href="${event.link || '#contact'}" class="event-btn">
-                        Learn More →
-                    </a>
+                <div>
+                    <h3 class="event-title">${event.title}</h3>
+                    <div class="event-date">
+                        <span>📅</span> ${event.date}
+                    </div>
+                    ${event.description ? `<p class="event-desc-short">${event.description}</p>` : ''}
                 </div>
             </div>
+            <div class="ripple-container"></div>
         </div>
     `).join('');
 
-    // Add stagger animation
-    const cards = container.querySelectorAll('.event-card');
-    cards.forEach((card, i) => {
-        setTimeout(() => {
-            card.classList.add('visible');
-        }, i * 100);
-    });
+    // Add Stagger & Lazy Loading
+    setTimeout(() => {
+        const cards = container.querySelectorAll('.event-card');
+        cards.forEach((card) => card.classList.add('visible'));
+
+        // Lazy Load
+        const imgObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.src = img.dataset.src;
+                    img.classList.remove('lazy-img');
+                    observer.unobserve(img);
+                }
+            });
+        });
+
+        container.querySelectorAll('.lazy-img').forEach(img => imgObserver.observe(img));
+    }, 50);
 }
 
 // Initialize events on page load

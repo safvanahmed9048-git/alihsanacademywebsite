@@ -140,58 +140,154 @@ function renderEnquiries(enquiries) {
     `).join('');
 }
 
+// --- EVENTS MANAGEMENT ---
+
 function renderEvents(events) {
     const list = document.getElementById('admin-events-list');
     if (!list) return;
-    list.innerHTML = events.map((ev, index) => `
-        <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:10px;">
-            <div style="display:flex; gap:15px; align-items:center;">
-                <img src="${ev.image}" style="width:50px; height:50px; object-fit:cover; border-radius:5px;">
+
+    // Sort by order if exists, else index
+    const sortedEvents = events.map((e, i) => ({ ...e, originalIndex: i }))
+        .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    list.innerHTML = sortedEvents.map((ev, index) => `
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-left: 5px solid ${ev.isVisible !== false ? '#2ecc71' : '#e74c3c'};">
+            <div style="display:flex; gap:15px; align-items:center; flex: 1;">
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                    <button onclick="moveEvent(${ev.originalIndex}, -1)" style="border:none; background:none; cursor:pointer;" title="Move Up">▲</button>
+                    <button onclick="moveEvent(${ev.originalIndex}, 1)" style="border:none; background:none; cursor:pointer;" title="Move Down">▼</button>
+                </div>
+                <img src="${ev.image}" style="width:60px; height:60px; object-fit:cover; border-radius:6px; background:#eee;">
                 <div>
-                    <strong style="display:block;">${ev.title}</strong>
+                    <strong style="display:block; font-size:1.1rem;">${ev.title}</strong>
                     <span style="color:#666; font-size:0.9rem;">${ev.date}</span>
+                    ${ev.isNew ? '<span class="badge badge-new" style="margin-left:5px;">New</span>' : ''}
+                    ${ev.isVisible === false ? '<span class="badge" style="background:#e74c3c; color:white;">Hidden</span>' : ''}
                 </div>
             </div>
-            <button class="btn btn-outline" style="padding:5px 10px; color:red; border-color:red;" onclick="deleteEvent(${index})">Delete</button>
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-outline" onclick="toggleEventVisibility(${ev.originalIndex})">
+                    ${ev.isVisible !== false ? 'Hide' : 'Show'}
+                </button>
+                <button class="btn btn-outline" onclick="editEvent(${ev.originalIndex})">Edit</button>
+                <button class="btn btn-outline" style="color:red; border-color:red;" onclick="deleteEvent(${ev.originalIndex})">Delete</button>
+            </div>
         </div>
     `).join('');
 }
 
-function renderGallery(gallery) {
-    const grid = document.getElementById('admin-gallery-grid');
-    if (!grid) return;
-    grid.innerHTML = gallery.map((img, index) => `
-        <div style="position:relative;">
-            <img src="${img}" style="width:100%; height:100px; object-fit:cover; border-radius:5px;">
-            <button onclick="deleteGalleryImage(${index})" style="position:absolute; top:5px; right:5px; background:red; color:white; border:none; border-radius:50%; width:24px; height:24px; cursor:pointer;">&times;</button>
-        </div>
-    `).join('');
-}
-
-// --- ACTIONS ---
-
-function addEvent(e) {
+function handleEventSubmit(e) {
     e.preventDefault();
     const data = db.get();
     if (!data.events) data.events = [];
 
-    const newEvent = {
-        id: Date.now(),
-        title: document.getElementById('new-event-title').value,
-        date: document.getElementById('new-event-date').value,
-        image: document.getElementById('new-event-img').value,
-        link: document.getElementById('new-event-link').value || '#'
+    const idInput = document.getElementById('event-id').value;
+    const isEdit = idInput !== '';
+
+    const eventData = {
+        id: isEdit ? parseInt(idInput) : Date.now(),
+        title: document.getElementById('event-title').value,
+        date: document.getElementById('event-date').value,
+        description: document.getElementById('event-desc').value,
+        image: document.getElementById('event-img').value,
+        isNew: document.getElementById('event-new').checked,
+        isVisible: document.getElementById('event-visible').checked,
+        order: isEdit ? data.events.find(ev => ev.id == idInput)?.order || 0 : data.events.length + 1
     };
 
-    data.events.push(newEvent);
+    if (isEdit) {
+        // Find and Update
+        const index = data.events.findIndex(ev => ev.id == eventData.id);
+        if (index !== -1) {
+            data.events[index] = eventData;
+            alert('Event Updated!');
+        }
+    } else {
+        // Add New
+        data.events.push(eventData);
+        alert('Event Added!');
+    }
+
     db.save(data);
     renderEvents(data.events);
-    e.target.reset();
-    alert('Event Added');
+    resetEventForm();
+}
+
+function editEvent(index) {
+    const data = db.get();
+    const ev = data.events[index];
+    if (!ev) return;
+
+    document.getElementById('event-form-title').textContent = 'Edit Event';
+    document.getElementById('event-submit-btn').textContent = 'Update Event';
+    document.getElementById('event-cancel-btn').style.display = 'inline-block';
+
+    document.getElementById('event-id').value = ev.id;
+    document.getElementById('event-title').value = ev.title;
+    document.getElementById('event-date').value = ev.date;
+    document.getElementById('event-desc').value = ev.description || '';
+    document.getElementById('event-img').value = ev.image;
+    document.getElementById('event-new').checked = ev.isNew || false;
+    document.getElementById('event-visible').checked = ev.isVisible !== false;
+
+    // Scroll to form
+    document.querySelector('.main-content').scrollTop = 0;
+}
+
+function resetEventForm() {
+    document.getElementById('event-form-title').textContent = 'Add New Event';
+    document.getElementById('event-submit-btn').textContent = 'Add Event';
+    document.getElementById('event-cancel-btn').style.display = 'none';
+    document.getElementById('event-id').value = '';
+    document.forms[0].reset(); // Resets only the active form? Be careful if multiple forms
+
+    // Manual reset of fields to be safe
+    document.getElementById('event-title').value = '';
+    document.getElementById('event-date').value = '';
+    document.getElementById('event-desc').value = '';
+    document.getElementById('event-img').value = '';
+    document.getElementById('event-new').checked = false;
+    document.getElementById('event-visible').checked = true;
+}
+
+function toggleEventVisibility(index) {
+    const data = db.get();
+    const ev = data.events[index];
+    ev.isVisible = !(ev.isVisible !== false); // Toggle
+    db.save(data);
+    renderEvents(data.events);
+}
+
+function moveEvent(index, direction) {
+    const data = db.get();
+    const events = data.events;
+
+    // Sort current list to match view
+    // Note: This relies on the internal array order being consistent with `order` parameter eventually.
+    // For simplicity, we will swap the `order` property of the two items.
+
+    const sortedIndices = events.map((e, i) => ({ index: i, order: e.order || 0 }))
+        .sort((a, b) => a.order - b.order);
+
+    const currentPos = sortedIndices.findIndex(item => item.index === index);
+    const targetPos = currentPos + direction;
+
+    if (targetPos < 0 || targetPos >= events.length) return; // Out of bounds
+
+    const itemA = events[sortedIndices[currentPos].index];
+    const itemB = events[sortedIndices[targetPos].index];
+
+    // Swap orders
+    const tempOrder = itemA.order;
+    itemA.order = itemB.order;
+    itemB.order = tempOrder;
+
+    db.save(data);
+    renderEvents(data.events);
 }
 
 function deleteEvent(index) {
-    if (!confirm('Delete this event?')) return;
+    if (!confirm('Are you sure you want to delete this event? This cannot be undone.')) return;
     const data = db.get();
     data.events.splice(index, 1);
     db.save(data);
