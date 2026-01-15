@@ -214,11 +214,7 @@ function initContent() {
 
     // --- NEW SECTIONS RENDER ---
 
-    // 1. Upcoming Events - RENDERED SEPARATELY IN renderEvents() to keep initContent clean
-    if (data.events && data.events.length === 0) {
-        const evSection = document.getElementById('events-section');
-        if (evSection) evSection.style.display = 'none';
-    }
+
 
     // 2. Contact Info (Footer & Page)
     document.querySelectorAll('.app-phone').forEach(el => el.textContent = data.contact.phone);
