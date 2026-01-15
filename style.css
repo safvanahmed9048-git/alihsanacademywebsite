@@ -794,8 +794,8 @@ footer::before {
 
 .gallery-marquee {
   display: inline-block;
-  animation: marquee 25s linear infinite;
-  /* Faster speed (was likely slower or default) */
+  animation: marquee 15s linear infinite;
+  /* Faster speed (was 25s) */
 }
 
 .gallery-item {
