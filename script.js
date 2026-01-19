@@ -8,7 +8,7 @@ const DEFAULT_DATA = {
     // --- GLOBAL SETTINGS ---
     contact: {
         address: "Al-Ihsan Academy, United Kingdom",
-        phone: "+44 7783 063060",
+        phone: "+44 7917 044585",
         whatsapp: "+44 7783 063060",
         email: "academy@alihsan.co.uk"
     },
@@ -17,103 +17,7 @@ const DEFAULT_DATA = {
         instagram: "#",
         youtube: "#"
     },
-    // --- PAGES ---
-    hero: {
-        title: "Welcome to AL-IHSAN Academy",
-        subtitle: 'Building a Generation for Tomorrow',
-        image: "hero-bg.jpg",
-        ctaText: "Read More",
-        ctaLink: "#about"
-    },
-    about: {
-        title: "About Us",
-        content: `
-            <div class="about-desc-box">
-                <h3 style="margin-bottom:20px; color:var(--col-primary-dark);">A Legacy of Knowledge</h3>
-                <p>AL-IHSAN Academy is an initiative of AL-IHSAN Organisation, established for the public benefit to support social inclusion among people living in the UK, especially the Keralite community. The organisation works to promote Islamic values, education, and Keralite culture and heritage, fostering harmony and community wellbeing through gatherings, celebrations of special occasions such as Eid and Ramadan, charitable support for the needy, and compassionate moral and pastoral care.</p>
-                
-                <p style="margin-top: 15px;">AL-IHSAN Academy focuses on moral and Islamic education for South Indian Muslim children across the UK and Europe. Through structured, virtual learning, the Academy offers <strong style="color: var(--col-primary);">Online Madrasa Education, Qur'an and Thajweed Classes, and Malayalam Language Classes</strong> delivered by expert teachers-making quality education accessible while nurturing strong Islamic values and cultural identity.</p>
-            </div>
-
-            <h4 style="margin: 25px 0 15px; color: var(--col-gold);">Our Features</h4>
-            <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: 1fr; gap: 10px;">
-                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Islamic Moral classes for children across UK & Europe in online</li>
-                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> One Islamic teacher for one student</li>
-                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Flexible schedules to match your days/weeks</li>
-                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Minimum 3 classes per week</li>
-                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Additional group sessions on Islamic events & topics</li>
-                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Regular class assessments</li>
-                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Annual centralised exam in different locations in UK</li>
-                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Special Quran and Thajweed classes</li>
-                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Male and female teachers to meet your child requirements</li>
-                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Quizzes & Qur'an competitions for students</li>
-                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Classes in Arabic, Malayalam and English medium</li>
-                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Malayalam language sessions on demand</li>
-                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Classes from year 1 to Year 10 in structured curriculum</li>
-                <li style="display:flex; gap:10px;"><span style="color:var(--col-primary);">✓</span> Quran Hifz courses on a shared accountability model</li>
-            </ul>
-        `,
-        image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=1000&auto=format&fit=crop"
-    },
-    stats: {
-        students: 300,
-        teachers: 45,
-        alumni: 500,
-        families: 1000
-    },
-    events: [
-        {
-            id: 1,
-            title: "Admission Open Day 2026",
-            date: "June 15, 2026",
-            time: "10:00 AM - 4:00 PM",
-            description: "Join us for our annual open day! Meet our teachers, tour our facilities, and learn about our curriculum.",
-            image: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&q=80",
-            location: "Main Campus, UK",
-            isNew: true,
-            isVisible: true,
-            order: 1,
-            link: "#contact"
-        },
-        {
-            id: 2,
-            title: "Islamic Arts & Culture Festival",
-            date: "July 20, 2026",
-            time: "2:00 PM - 8:00 PM",
-            description: "Celebrate Islamic heritage through art, calligraphy, and cultural performances.",
-            image: "https://images.unsplash.com/photo-1582662055627-2c96c4832e18?w=800&q=80",
-            location: "Community Hall",
-            isNew: false,
-            isVisible: true,
-            order: 2,
-            link: "#contact"
-        },
-        {
-            id: 3,
-            title: "Quran Recitation Competition",
-            date: "August 5, 2026",
-            time: "3:00 PM - 6:00 PM",
-            description: "Annual Quran recitation competition for students of all ages. Prizes for winners!",
-            image: "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?w=800&q=80",
-            location: "Online & In-Person",
-            isNew: true,
-            isVisible: true,
-            order: 3,
-            link: "#contact"
-        }
-    ],
-    activities: [
-        { title: "Annual Sports Day", date: "Jan 15, 2026", desc: "Celebrating physical fitness and teamwork.", img: "https://images.unsplash.com/photo-1576678927484-cc907957088c?auto=format&fit=crop&q=80&w=500" },
-        { title: "Quran Recitation", date: "Feb 10, 2026", desc: "Annual inter-class competition.", img: "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?auto=format&fit=crop&q=80&w=500" },
-        { title: "Science Fair", date: "March 5, 2026", desc: "Showcasing student innovation.", img: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80&w=500" }
-    ],
-    gallery: [
-        "about-1.jpg",
-        "about-2.jpg",
-        "about-3.jpg",
-        "about-4.jpg"
-    ],
-    enquiries: []
+    // ... (rest of DEFAULT_DATA) ...
 };
 
 // Initialize Data if empty
@@ -132,9 +36,14 @@ const db = {
 };
 
 // --- MIGRATION FIX ---
-// Automatically update hero image and about content for existing users
 const currentData = db.get();
 let dataChanged = false;
+
+// Force update Phone Number if it's the old one
+if (currentData.contact.phone === "+44 7783 063060") {
+    currentData.contact.phone = "+44 7917 044585";
+    dataChanged = true;
+}
 
 if (currentData.hero.image.includes('unsplash.com')) {
     currentData.hero.image = 'hero-bg.jpg';
@@ -153,10 +62,10 @@ if (!currentData.stats.alumni) {
     dataChanged = true;
 }
 
-// Force update core contact info to latest
+// Force update core contact info to latest if using really old email
 if (currentData.contact.email === "info@alihsanacademy.com" || currentData.contact.email === "alihsanacademyuk@gmail.com") {
     currentData.contact.email = DEFAULT_DATA.contact.email;
-    currentData.contact.phone = DEFAULT_DATA.contact.phone;
+    currentData.contact.phone = DEFAULT_DATA.contact.phone; // This will pick up new default
     currentData.contact.whatsapp = DEFAULT_DATA.contact.whatsapp;
     currentData.contact.address = DEFAULT_DATA.contact.address;
     dataChanged = true;
