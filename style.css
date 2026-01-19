@@ -612,6 +612,7 @@ footer::before {
   /* Responsive wrap */
 }
 
+/* Creative Contact Item Animations */
 .contact-item {
   display: flex;
   align-items: center;
@@ -620,19 +621,54 @@ footer::before {
   padding: 12px 15px;
   border-radius: 12px;
   text-decoration: none;
-  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  /* Bouncy spring */
   border: 1px solid rgba(0, 0, 0, 0.03);
   flex: 1;
-  /* Grow to fill space equally */
   min-width: 250px;
-  /* Prevent being too thin */
   box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  /* For ripple */
 }
 
+/* Hover State: Lift, Shadow, Border Glow */
 .contact-item:hover {
-  transform: translateX(8px) scale(1.02);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-  padding-left: 15px !important;
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+  border-color: var(--col-gold);
+  padding-left: 20px !important;
+  /* Slight slide right */
+}
+
+/* Active/Click State: Press Effect */
+.contact-item:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  transition: 0.1s;
+}
+
+/* Ripple Effect on Click using ::after */
+.contact-item::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300px;
+  height: 300px;
+  background: rgba(197, 160, 89, 0.2);
+  /* Gold ripple */
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  transition: transform 0.0s, opacity 0.0s;
+  pointer-events: none;
+}
+
+.contact-item:active::after {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+  transition: transform 0.4s ease-out, opacity 0.4s ease-out;
 }
 
 .contact-icon {
@@ -642,8 +678,15 @@ footer::before {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  /* Back-bounce easing */
   flex-shrink: 0;
+  z-index: 2;
+}
+
+/* Hover: Icon Rotates and Scales */
+.contact-item:hover .contact-icon {
+  transform: rotate(10deg) scale(1.1);
 }
 
 /* Color Coding */
@@ -655,6 +698,7 @@ footer::before {
 .contact-item:hover .contact-icon.icon-whatsapp {
   background: #25D366;
   color: white;
+  box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3);
 }
 
 .contact-icon.icon-phone {
@@ -665,6 +709,7 @@ footer::before {
 .contact-item:hover .contact-icon.icon-phone {
   background: #007BFF;
   color: white;
+  box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
 }
 
 .contact-icon.icon-email {
@@ -675,6 +720,7 @@ footer::before {
 .contact-item:hover .contact-icon.icon-email {
   background: #DC3545;
   color: white;
+  box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
 }
 
 .contact-label {
