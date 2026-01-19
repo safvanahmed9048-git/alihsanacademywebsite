@@ -212,17 +212,39 @@ function initContent() {
         // Double the gallery array to ensure a seamless loop
         const loopGallery = [...data.gallery, ...data.gallery];
         galleryMarquee.innerHTML = loopGallery.map((img, index) => {
-            const isSocial = img.includes('instagram.com') || img.includes('facebook.com');
+            const isInstagram = img.includes('instagram.com');
+            const isFacebook = img.includes('facebook.com');
 
-            if (isSocial) {
+            // Handle Instagram: Try to show Image, Fallback to Card on error
+            if (isInstagram) {
+                // Construct media URL: Clean query params, ensure trailing slash removed, add /media/?size=l
+                const cleanUrl = img.split('?')[0].replace(/\/$/, '');
+                const mediaUrl = `${cleanUrl}/media/?size=l`;
+
+                // Fallback HTML (The Gradient Card) escaped for use in onerror string
+                const fallbackHTML = `<div class='social-card' style='width:100%; height:100%; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;'><span style='font-size:2rem; color:white; margin-bottom:10px;'>📸</span><span style='color:white; font-weight:bold; font-size:0.9rem;'>View Post</span></div>`;
+
                 return `
-                  <div class="gallery-item social-card" onclick="window.open('${img}', '_blank')" style="background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;">
-                      <span style="font-size:2rem; color:white; margin-bottom:10px;">📸</span>
+                  <div class="gallery-item" onclick="window.open('${img}', '_blank')">
+                      <img src="${mediaUrl}" 
+                           alt="Instagram Post" 
+                           loading="lazy"
+                           onerror="this.style.display='none'; this.parentElement.innerHTML=&quot;${fallbackHTML}&quot;;">
+                  </div>
+                `;
+            }
+
+            // Handle Facebook (No direct image easy hack): Show Card
+            if (isFacebook) {
+                return `
+                  <div class="gallery-item social-card" onclick="window.open('${img}', '_blank')" style="background: #1877F2; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;">
+                      <span style="font-size:2rem; color:white; margin-bottom:10px;">f</span>
                       <span style="color:white; font-weight:bold; font-size:0.9rem;">View Post</span>
                   </div>
               `;
             }
 
+            // Standard Image
             return `
               <div class="gallery-item" onclick="openLightbox('${img}')">
                   <img src="${img}" alt="Al-Ihsan Gallery ${index + 1}" loading="lazy">
