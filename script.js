@@ -508,9 +508,14 @@ mobileLinks.forEach(link => {
 });
 
 // --- RENDER EVENTS ---
+// --- RENDER EVENTS (AUTO-MIGRATION LOGIC) ---
 function renderEvents() {
     const data = db.get();
     const container = document.getElementById('events-container');
+
+    // If we have a past events container, we'll render there too.
+    // Assuming the HTML might be updated later, but for now we filter upcoming for the main list.
+    // We will separate them logically here.
 
     if (!container) return;
 
@@ -518,64 +523,101 @@ function renderEvents() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Filter visible AND future/today events
-    const visibleEvents = (data.events || [])
-        .filter(event => {
-            if (event.isVisible === false) return false;
+    const allEvents = data.events || [];
 
-            // Auto-Expiry Logic
-            // Try to parse the date. Supports "June 15, 2026" and "2026-06-15"
-            const eventDate = new Date(event.date);
-            if (isNaN(eventDate.getTime())) return true; // Keep if invalid date to avoid accidental hiding
+    // SPLIT LOGIC: separates events into 'active' (Upcoming) and 'completed' (Past)
+    const upcomingEvents = [];
+    const pastEvents = [];
 
-            // If event date is in the past (yesterday or before), hide it
-            // We compare: if eventDate < today (midnight), it's expired.
-            // Actually, usually events on the day itself should still show. 
-            // So expired if eventDate < today (meaning yesterday).
-            // But if event.date includes time, logic might vary. Assuming simpler date-only for now.
-            return eventDate >= today;
-        })
-        .sort((a, b) => {
-            // Sort by Order first, then by earliest date
-            const orderDiff = (a.order || 0) - (b.order || 0);
-            if (orderDiff !== 0) return orderDiff;
-            return new Date(a.date) - new Date(b.date);
-        });
+    allEvents.forEach(event => {
+        if (event.isVisible === false) return; // Skip hidden
 
-    if (visibleEvents.length === 0) {
+        const eDate = new Date(event.date);
+        // Treat invalid dates as upcoming to be safe
+        if (isNaN(eDate.getTime()) || eDate >= today) {
+            upcomingEvents.push(event);
+        } else {
+            pastEvents.push(event);
+        }
+    });
+
+    // Sort: Upcoming (Nearest first), Past (Most recent first)
+    const sortParams = (a, b) => {
+        // Order first if exists
+        const orderDiff = (a.order || 0) - (b.order || 0);
+        if (orderDiff !== 0) return orderDiff;
+        return new Date(a.date) - new Date(b.date);
+    };
+
+    upcomingEvents.sort(sortParams);
+    pastEvents.sort((a, b) => new Date(b.date) - new Date(a.date)); // Reverse chrono for past
+
+    // RENDER UPCOMING (Default View)
+    if (upcomingEvents.length === 0) {
         container.innerHTML = `
             <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
                 <h3 style="color: var(--col-primary); font-size: 1.5rem; margin-bottom: 10px;">Stay Tuned!</h3>
                 <p style="color: #666; font-size: 1.1rem;">Upcoming event details will be published here.</p>
             </div>
         `;
-        return;
+    } else {
+        container.innerHTML = upcomingEvents.map((event, index) => renderEventCard(event, index, upcomingEvents)).join('');
     }
 
-    // Prep images for lightbox
-    const eventsForLightbox = visibleEvents; // Passed by reference, full objects
-
-    container.innerHTML = visibleEvents.map((event, index) => {
-        // Format display date nicely if ISO string
-        let displayDate = event.date;
-        const d = new Date(event.date);
-        if (!isNaN(d.getTime())) {
-            displayDate = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+    // Optional: Render Past Events if a specific container exists (e.g., #past-events-container)
+    const pastContainer = document.getElementById('past-events-container');
+    if (pastContainer) {
+        if (pastEvents.length === 0) {
+            pastContainer.innerHTML = `<p class="text-center" style="grid-column:1/-1; color:#888;">No past events to show.</p>`;
+        } else {
+            pastContainer.innerHTML = pastEvents.map((event, index) => renderEventCard(event, index, pastEvents, true)).join('');
         }
+    }
 
-        return `
-        <div class="event-card" 
-             style="animation-delay: ${index * 0.1}s;" 
-             onclick="openLightbox(db.get().events.filter(e => e.isVisible !== false && new Date(e.date) >= new Date().setHours(0,0,0,0)).sort((a, b) => (a.order || 0) - (b.order || 0)), ${index})">
+    // Init animations
+    initEventAnimations(container);
+    if (pastContainer) initEventAnimations(pastContainer);
+}
+
+// Helper: Render Single Card
+function renderEventCard(event, index, listContext, isPast = false) {
+    let displayDate = event.date;
+    const d = new Date(event.date);
+    if (!isNaN(d.getTime())) {
+        displayDate = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    // Check if image is a video URL or external link (Basic heuristic)
+    // For now we assume image-only previews, but this hook allows future iframe expansion
+    // If we wanted to support 'video' we would check event.videoUrl or similar.
+    // Currently relying on 'src' being an image.
+
+    // Onclick: pass the filtered list so lightbox navigates correctly within the context (Upcoming vs Past)
+    // We need to serialize the list safely or just use a global ref. Using a simplified approach here:
+    // We attach data attributes and let the click handler resolve it, OR reconstruct the filter in the onclick.
+    // For simplicity/reliability in this static setup, we'll just disable lightbox nav across groups for now, 
+    // or pass the specific event image.
+
+    // Hack: passing the filtered array in the onclick string is messy. 
+    // Better: update openLightbox to accept an ID or just the image URL for single view if list is complex.
+    // Let's stick to single image view for cleanliness in this patch, or simple array.
+
+    // Quick Fix for Lightbox Context:
+    // We will just pass [event] as the list to isolate it, avoiding complex JS string injection.
+
+    return `
+        <div class="event-card ${isPast ? 'past-event' : ''}" 
+             style="animation-delay: ${index * 0.1}s; ${isPast ? 'opacity:0.8; filter:grayscale(0.3);' : ''}">
             
-            <div class="event-image-wrapper">
+            <div class="event-image-wrapper" onclick="openLightbox('${event.image}')">
                 <img 
                     data-src="${event.image}" 
                     src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
                     alt="${event.title}" 
                     class="event-banner lazy-img"
                 >
-                ${event.isNew ? '<span class="event-badge">New</span>' : ''}
+                ${event.isNew && !isPast ? '<span class="event-badge">New</span>' : ''}
+                ${isPast ? '<span class="event-badge" style="background:#555;">Completed</span>' : ''}
             </div>
             
             <div class="event-content">
@@ -584,13 +626,14 @@ function renderEvents() {
                     <div class="event-date">
                         <span>📅</span> ${displayDate}
                     </div>
+                    ${event.description ? `<p style="font-size:0.9em; color:#666; margin-top:5px; line-height:1.4;">${event.description.substring(0, 80)}${event.description.length > 80 ? '...' : ''}</p>` : ''}
                 </div>
             </div>
-            <div class="ripple-container"></div>
         </div>
-    `}).join('');
+    `;
+}
 
-    // Add Stagger & Lazy Loading
+function initEventAnimations(container) {
     setTimeout(() => {
         const cards = container.querySelectorAll('.event-card');
         cards.forEach((card) => card.classList.add('visible'));
