@@ -211,11 +211,24 @@ function initContent() {
     if (galleryMarquee && data.gallery) {
         // Double the gallery array to ensure a seamless loop
         const loopGallery = [...data.gallery, ...data.gallery];
-        galleryMarquee.innerHTML = loopGallery.map((img, index) => `
-          <div class="gallery-item" onclick="openLightbox('${img}')">
-              <img src="${img}" alt="Al-Ihsan Gallery ${index + 1}" loading="lazy">
-          </div>
-      `).join('');
+        galleryMarquee.innerHTML = loopGallery.map((img, index) => {
+            const isSocial = img.includes('instagram.com') || img.includes('facebook.com');
+
+            if (isSocial) {
+                return `
+                  <div class="gallery-item social-card" onclick="window.open('${img}', '_blank')" style="background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;">
+                      <span style="font-size:2rem; color:white; margin-bottom:10px;">📸</span>
+                      <span style="color:white; font-weight:bold; font-size:0.9rem;">View Post</span>
+                  </div>
+              `;
+            }
+
+            return `
+              <div class="gallery-item" onclick="openLightbox('${img}')">
+                  <img src="${img}" alt="Al-Ihsan Gallery ${index + 1}" loading="lazy">
+              </div>
+            `;
+        }).join('');
     }
 
     // --- NEW SECTIONS RENDER ---
