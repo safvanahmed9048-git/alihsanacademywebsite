@@ -33,16 +33,16 @@
   },
   "events": [
     {
-      "id": 2,
-      "title": "Islamic Arts & Culture Festival",
-      "date": "July 20, 2026",
-      "time": "2:00 PM - 8:00 PM",
-      "description": "Celebrate Islamic heritage through art, calligraphy, and cultural performances.",
-      "image": "https://images.unsplash.com/photo-1582662055627-2c96c4832e18?w=800&q=80",
-      "location": "Community Hall",
-      "isNew": false,
+      "id": 1,
+      "title": "Admission Open Day 2026",
+      "date": "June 15, 2026",
+      "time": "10:00 AM - 4:00 PM",
+      "description": "Join us for our annual open day! Meet our teachers, tour our facilities, and learn about our curriculum.",
+      "image": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&q=80",
+      "location": "Main Campus, UK",
+      "isNew": true,
       "isVisible": true,
-      "order": 2,
+      "order": 1,
       "link": "#contact"
     },
     {
