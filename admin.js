@@ -313,15 +313,15 @@ function addGalleryImage() {
     const url = urlInput.value.trim();
     if (!url) return;
 
+    // Check if it's a known non-image URL (like Instagram) to skip pre-validation
+    const isGenericUrl = url.includes('instagram.com') || url.includes('facebook.com');
+
     const btn = document.querySelector('button[onclick="addGalleryImage()"]');
     const originalText = btn.textContent;
     btn.textContent = 'Verifying...';
     btn.disabled = true;
 
-    // Create a temporary image to test loading
-    const img = new Image();
-    img.onload = function () {
-        // Validation successful
+    const saveImage = () => {
         const data = db.get();
         data.gallery.push(url);
         db.save(data);
@@ -329,15 +329,27 @@ function addGalleryImage() {
         urlInput.value = '';
         btn.textContent = originalText;
         btn.disabled = false;
-        alert('Image added successfully!');
+        alert('Image/Link added successfully!');
     };
-    img.onerror = function () {
-        // Validation failed
-        alert('Error: Unable to load image. Please check the URL and try again. Ensure it is a direct link to an image (jpg/png).');
-        btn.textContent = originalText;
-        btn.disabled = false;
-    };
-    img.src = url;
+
+    if (isGenericUrl) {
+        // Skip validation for social links
+        saveImage();
+    } else {
+        // Validate direct images
+        const img = new Image();
+        img.onload = saveImage;
+        img.onerror = function () {
+            // Soft failure: Ask user if they want to proceed anyway
+            if (confirm('Warning: This URL does not look like a direct image link. Add it anyway?')) {
+                saveImage();
+            } else {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        };
+        img.src = url;
+    }
 }
 
 function deleteGalleryImage(index) {
