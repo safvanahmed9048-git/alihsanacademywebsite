@@ -86,8 +86,10 @@ async function logout() {
 
 // --- CMS LOGIC ---
 
-function initAdmin() {
-    const data = db.get();
+// --- CMS LOGIC ---
+
+async function initAdmin() {
+    const data = await db.get(); // Async Get
 
     // Dashboard Stats
     if (document.getElementById('dash-students')) document.getElementById('dash-students').textContent = data.stats.students;
@@ -129,7 +131,7 @@ function initAdmin() {
 function renderEnquiries(enquiries) {
     const table = document.getElementById('enquiry-table');
     if (!table) return;
-    table.innerHTML = enquiries.slice().reverse().map(req => `
+    table.innerHTML = (enquiries || []).slice().reverse().map(req => `
         <tr>
             <td>${req.date || 'N/A'}</td>
             <td><strong>${req.studentName}</strong></td>
@@ -155,24 +157,26 @@ function renderGallery(images) {
 }
 
 // --- EVENTS MANAGEMENT ---
+// Note: renderEvents is duplicated in script.js but we keep it here for Admin view specific logic if needed.
+// However, since we defined the same function name, we must be careful.
+// script.js's renderEvents targets 'events-container', this one targets 'admin-events-list'.
+// They coexist because they target different elements.
+// Same logic as before, just async aware? renderEvents doesn't call db.get inside, it takes 'events' arg.
+// So renderEvents remains synchronous-ish, but the caller provides data.
 
 function renderEvents(events) {
     const list = document.getElementById('admin-events-list');
     if (!list) return;
 
-    // Split events logic similar to frontend
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const upcoming = [];
     const past = [];
-
-    // Map original index to keep track for editing/deleting
     const mappedEvents = events.map((e, i) => ({ ...e, originalIndex: i }));
 
     mappedEvents.forEach(ev => {
         const eDate = new Date(ev.date);
-        // If invalid date or future/today, it's upcoming
         if (isNaN(eDate.getTime()) || eDate >= today) {
             upcoming.push(ev);
         } else {
@@ -180,11 +184,10 @@ function renderEvents(events) {
         }
     });
 
-    // Sort Upcoming by Order/Date
     upcoming.sort((a, b) => (a.order || 0) - (b.order || 0));
-    // Sort Past by Date Descending
     past.sort((a, b) => new Date(b.date) - new Date(a.date));
 
+    // (Rendering logic identical to previous, omitted for brevity as it was already correct)
     const renderCard = (ev, isPast) => `
         <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-left: 5px solid ${isPast ? '#95a5a6' : (ev.isVisible !== false ? '#2ecc71' : '#e74c3c')}; opacity: ${isPast ? '0.8' : '1'}; background: ${isPast ? '#f9f9f9' : 'white'};">
             <div style="display:flex; gap:15px; align-items:center; flex: 1;">
@@ -213,60 +216,64 @@ function renderEvents(events) {
     `;
 
     let html = '';
-
-    // Upcoming Section
     html += `<h3 style="margin: 20px 0 10px; color: var(--col-primary);">📅 Upcoming & Active Events</h3>`;
     if (upcoming.length === 0) html += `<p style="color:#888; font-style:italic;">No upcoming events scheduled.</p>`;
     html += upcoming.map(ev => renderCard(ev, false)).join('');
 
-    // Past Section
     if (past.length > 0) {
         html += `<h3 style="margin: 40px 0 10px; color: #7f8c8d; border-top: 2px dashed #eee; padding-top: 20px;">🕰️ Past Events (Archived)</h3>`;
         html += past.map(ev => renderCard(ev, true)).join('');
     }
-
     list.innerHTML = html;
 }
 
-function handleEventSubmit(e) {
+async function handleEventSubmit(e) {
     e.preventDefault();
-    const data = db.get();
-    if (!data.events) data.events = [];
+    const btn = document.getElementById('event-submit-btn');
+    const originalText = btn.textContent;
+    btn.textContent = 'Saving...';
+    btn.disabled = true;
 
-    const idInput = document.getElementById('event-id').value;
-    const isEdit = idInput !== '';
+    try {
+        const data = await db.get();
+        if (!data.events) data.events = [];
 
-    const eventData = {
-        id: isEdit ? parseInt(idInput) : Date.now(),
-        title: document.getElementById('event-title').value,
-        date: document.getElementById('event-date').value,
-        description: document.getElementById('event-desc').value,
-        image: document.getElementById('event-img').value,
-        isNew: document.getElementById('event-new').checked,
-        isVisible: document.getElementById('event-visible').checked,
-        order: isEdit ? data.events.find(ev => ev.id == idInput)?.order || 0 : data.events.length + 1
-    };
+        const idInput = document.getElementById('event-id').value;
+        const isEdit = idInput !== '';
 
-    if (isEdit) {
-        // Find and Update
-        const index = data.events.findIndex(ev => ev.id == eventData.id);
-        if (index !== -1) {
-            data.events[index] = eventData;
-            alert('Event Updated!');
+        const eventData = {
+            id: isEdit ? parseInt(idInput) : Date.now(),
+            title: document.getElementById('event-title').value,
+            date: document.getElementById('event-date').value,
+            description: document.getElementById('event-desc').value,
+            image: document.getElementById('event-img').value,
+            isNew: document.getElementById('event-new').checked,
+            isVisible: document.getElementById('event-visible').checked,
+            order: isEdit ? data.events.find(ev => ev.id == idInput)?.order || 0 : data.events.length + 1
+        };
+
+        if (isEdit) {
+            const index = data.events.findIndex(ev => ev.id == eventData.id);
+            if (index !== -1) {
+                data.events[index] = eventData;
+            }
+        } else {
+            data.events.push(eventData);
         }
-    } else {
-        // Add New
-        data.events.push(eventData);
-        alert('Event Added!');
-    }
 
-    db.save(data);
-    renderEvents(data.events);
-    resetEventForm();
+        await db.save(data);
+        renderEvents(data.events);
+        resetEventForm();
+    } catch (err) {
+        alert("Failed to save event");
+    } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
 }
 
-function editEvent(index) {
-    const data = db.get();
+async function editEvent(index) {
+    const data = await db.get();
     const ev = data.events[index];
     if (!ev) return;
 
@@ -282,7 +289,6 @@ function editEvent(index) {
     document.getElementById('event-new').checked = ev.isNew || false;
     document.getElementById('event-visible').checked = ev.isVisible !== false;
 
-    // Scroll to form
     document.querySelector('.main-content').scrollTop = 0;
 }
 
@@ -291,9 +297,8 @@ function resetEventForm() {
     document.getElementById('event-submit-btn').textContent = 'Add Event';
     document.getElementById('event-cancel-btn').style.display = 'none';
     document.getElementById('event-id').value = '';
-    document.forms[0].reset(); // Resets only the active form? Be careful if multiple forms
 
-    // Manual reset of fields to be safe
+    // Explicit reset
     document.getElementById('event-title').value = '';
     document.getElementById('event-date').value = '';
     document.getElementById('event-desc').value = '';
@@ -302,21 +307,17 @@ function resetEventForm() {
     document.getElementById('event-visible').checked = true;
 }
 
-function toggleEventVisibility(index) {
-    const data = db.get();
+async function toggleEventVisibility(index) {
+    const data = await db.get();
     const ev = data.events[index];
-    ev.isVisible = !(ev.isVisible !== false); // Toggle
-    db.save(data);
+    ev.isVisible = !(ev.isVisible !== false);
+    await db.save(data);
     renderEvents(data.events);
 }
 
-function moveEvent(index, direction) {
-    const data = db.get();
+async function moveEvent(index, direction) {
+    const data = await db.get();
     const events = data.events;
-
-    // Sort current list to match view
-    // Note: This relies on the internal array order being consistent with `order` parameter eventually.
-    // For simplicity, we will swap the `order` property of the two items.
 
     const sortedIndices = events.map((e, i) => ({ index: i, order: e.order || 0 }))
         .sort((a, b) => a.order - b.order);
@@ -324,25 +325,24 @@ function moveEvent(index, direction) {
     const currentPos = sortedIndices.findIndex(item => item.index === index);
     const targetPos = currentPos + direction;
 
-    if (targetPos < 0 || targetPos >= events.length) return; // Out of bounds
+    if (targetPos < 0 || targetPos >= events.length) return;
 
     const itemA = events[sortedIndices[currentPos].index];
     const itemB = events[sortedIndices[targetPos].index];
 
-    // Swap orders
     const tempOrder = itemA.order;
     itemA.order = itemB.order;
     itemB.order = tempOrder;
 
-    db.save(data);
+    await db.save(data);
     renderEvents(data.events);
 }
 
-function deleteEvent(index) {
-    if (!confirm('Are you sure you want to delete this event? This cannot be undone.')) return;
-    const data = db.get();
+async function deleteEvent(index) {
+    if (!confirm('Are you sure you want to delete this event?')) return;
+    const data = await db.get();
     data.events.splice(index, 1);
-    db.save(data);
+    await db.save(data);
     renderEvents(data.events);
 }
 
@@ -351,34 +351,33 @@ function addGalleryImage() {
     const url = urlInput.value.trim();
     if (!url) return;
 
-    // Check if it's a known non-image URL (like Instagram) to skip pre-validation
     const isGenericUrl = url.includes('instagram.com') || url.includes('facebook.com');
-
     const btn = document.querySelector('button[onclick="addGalleryImage()"]');
     const originalText = btn.textContent;
     btn.textContent = 'Verifying...';
     btn.disabled = true;
 
-    const saveImage = () => {
-        const data = db.get();
-        data.gallery.push(url);
-        db.save(data);
-        renderGallery(data.gallery);
-        urlInput.value = '';
-        btn.textContent = originalText;
-        btn.disabled = false;
-        alert('Image/Link added successfully!');
+    const saveImage = async () => {
+        try {
+            const data = await db.get();
+            data.gallery.push(url);
+            await db.save(data);
+            renderGallery(data.gallery);
+            urlInput.value = '';
+        } catch (e) {
+            console.error(e);
+        } finally {
+            btn.textContent = originalText;
+            btn.disabled = false;
+        }
     };
 
     if (isGenericUrl) {
-        // Skip validation for social links
         saveImage();
     } else {
-        // Validate direct images
         const img = new Image();
         img.onload = saveImage;
         img.onerror = function () {
-            // Soft failure: Ask user if they want to proceed anyway
             if (confirm('Warning: This URL does not look like a direct image link. Add it anyway?')) {
                 saveImage();
             } else {
@@ -390,69 +389,64 @@ function addGalleryImage() {
     }
 }
 
-function deleteGalleryImage(index) {
+async function deleteGalleryImage(index) {
     if (!confirm('Delete this photo?')) return;
-    const data = db.get();
+    const data = await db.get();
     data.gallery.splice(index, 1);
-    db.save(data);
+    await db.save(data);
     renderGallery(data.gallery);
 }
 
-function saveSettings() {
-    const data = db.get();
+async function saveSettings() {
+    const data = await db.get();
     data.contact = {
         phone: document.getElementById('set-phone').value,
         whatsapp: document.getElementById('set-whatsapp').value,
         email: document.getElementById('set-email').value,
         address: document.getElementById('set-address').value
     };
-    db.save(data);
-    alert('Contact Info Saved!');
+    await db.save(data);
 }
 
-function saveSocials() {
-    const data = db.get();
+async function saveSocials() {
+    const data = await db.get();
     data.socials = {
         facebook: document.getElementById('set-fb').value,
         instagram: document.getElementById('set-insta').value,
         youtube: document.getElementById('set-yt').value
     };
-    db.save(data);
-    alert('Social Links Saved!');
+    await db.save(data);
 }
 
-function saveHero() {
-    const data = db.get();
+async function saveHero() {
+    const data = await db.get();
     data.hero.title = document.getElementById('set-hero-title').value;
     data.hero.subtitle = document.getElementById('set-hero-subtitle').value;
     data.hero.image = document.getElementById('edit-hero-image').value;
-    db.save(data);
-    alert('Hero Section Saved!');
+    await db.save(data);
 }
 
-function saveStats() {
-    const data = db.get();
+async function saveStats() {
+    const data = await db.get();
     data.stats.students = document.getElementById('edit-stats-students').value;
     data.stats.teachers = document.getElementById('edit-stats-teachers').value;
-    db.save(data);
-    alert('Stats Updated!');
+    data.stats.alumni = document.getElementById('edit-stats-alumni').value;
+    data.stats.families = document.getElementById('edit-stats-families').value;
+    await db.save(data);
 }
 
 // --- NAVIGATION ---
-
 window.showSection = function (id) {
     document.querySelectorAll('.content-section').forEach(el => el.style.display = 'none');
     document.getElementById(id).style.display = 'block';
-
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-    // Ideally find the nav item with the onclick matching and add active, 
-    // but for simplicity just simple toggle.
 }
 
 // --- EXPORT CSV ---
-window.exportCSV = function () {
-    const data = db.get().enquiries;
-    if (data.length === 0) { alert('No enquiries to export'); return; }
+window.exportCSV = async function () {
+    const dataRaw = await db.get();
+    const data = dataRaw.enquiries;
+    if (!data || data.length === 0) { alert('No enquiries to export'); return; }
 
     const headers = ["Date", "Student Name", "Parent Name", "Class", "Phone", "Email", "Message"];
     const rows = data.map(e => [e.date, e.studentName, e.parentName, e.class, e.phone, e.email || '', e.message || ''].join(","));

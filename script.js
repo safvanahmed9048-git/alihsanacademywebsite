@@ -4,88 +4,54 @@
  */
 
 // --- DATA LAYER ---
-const DEFAULT_DATA = {
-    // --- GLOBAL SETTINGS ---
-    contact: {
-        address: "Al-Ihsan Academy, United Kingdom",
-        phone: "+44 7917 044585",
-        whatsapp: "+44 7783 063060",
-        email: "academy@alihsan.co.uk"
-    },
-    socials: {
-        facebook: "#",
-        instagram: "#",
-        youtube: "#"
-    },
-    // ... (rest of DEFAULT_DATA) ...
-};
-
-// Initialize Data if empty
-if (!localStorage.getItem('alIhsanData')) {
-    localStorage.setItem('alIhsanData', JSON.stringify(DEFAULT_DATA));
-}
+// --- DATA LAYER ---
+// Replaced LocalStorage with Central Cloud Data (data.json + GitHub API)
 
 const db = {
-    get: () => JSON.parse(localStorage.getItem('alIhsanData')),
-    save: (data) => localStorage.setItem('alIhsanData', JSON.stringify(data)),
-    addEnquiry: (enquiry) => {
-        const data = db.get();
+    get: async () => {
+        try {
+            // Fetch with cache busting
+            const response = await fetch('/data.json?t=' + Date.now());
+            if (!response.ok) throw new Error('Failed to load data');
+            return await response.json();
+        } catch (error) {
+            console.error('DB Load Error:', error);
+            // Fallback for extreme cases (network fail) to prevent crash
+            return { hero: {}, contact: {}, socials: {}, events: [], gallery: [], enquiries: [], stats: {}, about: {} };
+        }
+    },
+    save: async (data, silent = false) => {
+        try {
+            const response = await fetch('/api/save-data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'Save failed');
+
+            if (!silent) alert('Changes Saved! They will reflect on the live site in about 1-2 minutes (after deployment).');
+            return true;
+        } catch (error) {
+            console.error('DB Save Error:', error);
+            alert('Error saving data: ' + error.message);
+            return false;
+        }
+    },
+    addEnquiry: async (enquiry) => {
+        const data = await db.get();
+        if (!data.enquiries) data.enquiries = [];
         data.enquiries.push({ ...enquiry, id: Date.now(), date: new Date().toLocaleDateString() });
-        db.save(data);
+        // Enquiries are critical, we try to save immediately
+        await db.save(data, true); // Silent save
     }
 };
-
-// --- MIGRATION FIX ---
-const currentData = db.get();
-let dataChanged = false;
-
-// Force update Phone Number if it's the old one
-if (currentData.contact.phone === "+44 7783 063060") {
-    currentData.contact.phone = "+44 7917 044585";
-    dataChanged = true;
-}
-
-if (currentData.hero.image.includes('unsplash.com')) {
-    currentData.hero.image = 'hero-bg.jpg';
-    dataChanged = true;
-}
-
-// Force update "About Us" content to new version if it lacks the new box structure
-if (!currentData.about.content.includes('about-desc-box')) {
-    currentData.about.content = DEFAULT_DATA.about.content;
-    dataChanged = true;
-}
-
-// Force update stats if they are missing new keys (alumni)
-if (!currentData.stats.alumni) {
-    currentData.stats = DEFAULT_DATA.stats;
-    dataChanged = true;
-}
-
-// Force update core contact info to latest if using really old email
-if (currentData.contact.email === "info@alihsanacademy.com" || currentData.contact.email === "alihsanacademyuk@gmail.com") {
-    currentData.contact.email = DEFAULT_DATA.contact.email;
-    currentData.contact.phone = DEFAULT_DATA.contact.phone; // This will pick up new default
-    currentData.contact.whatsapp = DEFAULT_DATA.contact.whatsapp;
-    currentData.contact.address = DEFAULT_DATA.contact.address;
-    dataChanged = true;
-}
-
-// Force update Gallery to Local Images if using old Unsplash links
-if (currentData.gallery && currentData.gallery.some(img => img.includes('unsplash.com'))) {
-    currentData.gallery = DEFAULT_DATA.gallery;
-    dataChanged = true;
-}
-
-if (dataChanged) {
-    db.save(currentData);
-}
 
 // --- UI LOGIC ---
 
 // 1. Populate Content on Load
-function initContent() {
-    const data = db.get();
+async function initContent() {
+    const data = await db.get();
 
     // Hero
     const heroTitle = document.getElementById('hero-title');
@@ -110,61 +76,33 @@ function initContent() {
     const aboutText = document.getElementById('about-text');
     if (aboutText) {
         aboutText.innerHTML = data.about.content;
-        // Image is now static HTML
     }
-
-
 
     // Gallery Marquee
     const galleryMarquee = document.getElementById('gallery-marquee');
     if (galleryMarquee && data.gallery) {
-        // Double the gallery array to ensure a seamless loop
         const loopGallery = [...data.gallery, ...data.gallery];
         galleryMarquee.innerHTML = loopGallery.map((img, index) => {
             const isInstagram = img.includes('instagram.com');
             const isFacebook = img.includes('facebook.com');
 
-            // Handle Instagram: Try to show Image, Fallback to Card on error
+            // Handle Instagram
             if (isInstagram) {
-                // Construct media URL: Clean query params, ensure trailing slash removed, add /media/?size=l
                 const cleanUrl = img.split('?')[0].replace(/\/$/, '');
                 const mediaUrl = `${cleanUrl}/media/?size=l`;
-
-                // Fallback HTML (The Gradient Card) escaped for use in onerror string
                 const fallbackHTML = `<div class='social-card' style='width:100%; height:100%; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;'><span style='font-size:2rem; color:white; margin-bottom:10px;'>📸</span><span style='color:white; font-weight:bold; font-size:0.9rem;'>View Post</span></div>`;
-
-                return `
-                  <div class="gallery-item" onclick="window.open('${img}', '_blank')">
-                      <img src="${mediaUrl}" 
-                           alt="Instagram Post" 
-                           loading="lazy"
-                           onerror="this.style.display='none'; this.parentElement.innerHTML=&quot;${fallbackHTML}&quot;;">
-                  </div>
-                `;
+                return `<div class="gallery-item" onclick="window.open('${img}', '_blank')"><img src="${mediaUrl}" alt="Instagram Post" loading="lazy" onerror="this.style.display='none'; this.parentElement.innerHTML=&quot;${fallbackHTML}&quot;;"></div>`;
             }
 
-            // Handle Facebook (No direct image easy hack): Show Card
+            // Handle Facebook
             if (isFacebook) {
-                return `
-                  <div class="gallery-item social-card" onclick="window.open('${img}', '_blank')" style="background: #1877F2; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;">
-                      <span style="font-size:2rem; color:white; margin-bottom:10px;">f</span>
-                      <span style="color:white; font-weight:bold; font-size:0.9rem;">View Post</span>
-                  </div>
-              `;
+                return `<div class="gallery-item social-card" onclick="window.open('${img}', '_blank')" style="background: #1877F2; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;"><span style="font-size:2rem; color:white; margin-bottom:10px;">f</span><span style="color:white; font-weight:bold; font-size:0.9rem;">View Post</span></div>`;
             }
 
             // Standard Image
-            return `
-              <div class="gallery-item" onclick="openLightbox('${img}')">
-                  <img src="${img}" alt="Al-Ihsan Gallery ${index + 1}" loading="lazy">
-              </div>
-            `;
+            return `<div class="gallery-item" onclick="openLightbox('${img}')"><img src="${img}" alt="Al-Ihsan Gallery ${index + 1}" loading="lazy"></div>`;
         }).join('');
     }
-
-    // --- NEW SECTIONS RENDER ---
-
-
 
     // 2. Contact Info (Footer & Page)
     document.querySelectorAll('.app-phone').forEach(el => el.textContent = data.contact.phone);
@@ -172,8 +110,8 @@ function initContent() {
     document.querySelectorAll('.app-address').forEach(el => el.textContent = data.contact.address);
 
     // Dynamic Links
-    const waLink = `https://wa.me/${data.contact.whatsapp.replace(/[^0-9]/g, '')}`; // Strip non-numeric
-    const phoneLink = `tel:${data.contact.phone.replace(/[^0-9+]/g, '')}`; // Strip spaces/dashes, keep +
+    const waLink = `https://wa.me/${data.contact.whatsapp.replace(/[^0-9]/g, '')}`;
+    const phoneLink = `tel:${data.contact.phone.replace(/[^0-9+]/g, '')}`;
 
     document.querySelectorAll('.link-whatsapp').forEach(el => el.href = waLink);
     document.querySelectorAll('.link-phone').forEach(el => el.href = phoneLink);
@@ -217,24 +155,35 @@ function initCounters() {
 }
 
 // 3. Enquiry Form Handler
-function handleEnquirySubmit(e) {
+async function handleEnquirySubmit(e) {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const enquiry = Object.fromEntries(formData.entries());
+    const btn = e.target.querySelector('button[type="submit"]');
+    const originalText = btn.textContent;
+    btn.textContent = 'Sending...';
+    btn.disabled = true;
 
-    db.addEnquiry(enquiry);
-
-    alert('Thank you! Your admission enquiry has been submitted successfully.');
-    e.target.reset();
+    try {
+        const formData = new FormData(e.target);
+        const enquiry = Object.fromEntries(formData.entries());
+        await db.addEnquiry(enquiry);
+        alert('Thank you! Your admission enquiry has been submitted successfully.');
+        e.target.reset();
+    } catch (err) {
+        alert('Could not submit enquiry. Please try again.');
+    } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
 }
 
 // --- INITIALIZATION ---
-document.addEventListener('DOMContentLoaded', () => {
-    // Determine if we are on the User Side (presence of #home or #hero-title)
+document.addEventListener('DOMContentLoaded', async () => {
+    // Determine if we are on the User Side
     const isUserPage = document.getElementById('home') || document.getElementById('hero-title');
 
     if (isUserPage) {
-        initContent();
+        await initContent();
+        await renderEvents(); // Ensure events render!
 
         const form = document.getElementById('enquiry-form');
         if (form) form.addEventListener('submit', handleEnquirySubmit);
@@ -254,13 +203,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- LIGHTBOX LOGIC ---
-// --- LIGHTBOX LOGIC ---
+// ... (Reference existing code for initLightboxHTML, openLightbox etc, unchanged except openLightbox usage)
 let currentLightboxIndex = -1;
 let lightboxImages = [];
 
 function initLightboxHTML() {
     if (document.getElementById('lightbox')) return;
-
     const div = document.createElement('div');
     div.id = 'lightbox';
     div.className = 'lightbox';
@@ -274,35 +222,23 @@ function initLightboxHTML() {
         <div class="interaction-hint">Double tap to zoom • Swipe to navigate</div>
     `;
     document.body.appendChild(div);
-
-    // Initial Event Listeners
     div.addEventListener('click', (e) => {
-        if (e.target === div || e.target.classList.contains('lightbox-content-wrapper')) {
-            closeLightbox();
-        }
+        if (e.target === div || e.target.classList.contains('lightbox-content-wrapper')) closeLightbox();
     });
-
     initLightboxGestures();
 }
 
 function openLightbox(source, index = -1) {
-    initLightboxHTML(); // Ensure HTML exists
+    initLightboxHTML();
     const lightbox = document.getElementById('lightbox');
-    const img = document.getElementById('lightbox-img');
-
-    // Determine input type
     if (typeof source === 'string') {
-        // Single image URL string (legacy/gallery support)
         lightboxImages = [source];
         currentLightboxIndex = 0;
     } else if (Array.isArray(source)) {
-        // Array of objects or strings
         lightboxImages = source;
         currentLightboxIndex = index;
     }
-
     updateLightboxImage();
-
     lightbox.classList.add('active');
     document.body.style.overflow = 'hidden';
 }
@@ -316,9 +252,7 @@ function updateLightboxImage() {
         ? lightboxImages[currentLightboxIndex]
         : lightboxImages[currentLightboxIndex].image;
 
-    // Reset Zoom
     resetZoom(img);
-
     img.style.opacity = '0.5';
     img.src = src;
     setTimeout(() => img.style.opacity = '1', 200);
@@ -326,12 +260,9 @@ function updateLightboxImage() {
 
 function changeLightboxImage(dir) {
     if (lightboxImages.length <= 1) return;
-
     currentLightboxIndex += dir;
-    // Loop
     if (currentLightboxIndex >= lightboxImages.length) currentLightboxIndex = 0;
     if (currentLightboxIndex < 0) currentLightboxIndex = lightboxImages.length - 1;
-
     updateLightboxImage();
 }
 
@@ -343,24 +274,14 @@ function closeLightbox() {
     }
 }
 
-// Zoom & Swipe Logic
 function initLightboxGestures() {
     const img = document.getElementById('lightbox-img');
     const wrapper = document.getElementById('lightbox-wrapper');
-
     let scale = 1;
-    let panning = false;
-    let pointX = 0;
-    let pointY = 0;
-    let startX = 0;
-    let startY = 0;
-
-    // Swipe Vars
     let touchStartX = 0;
     let touchEndX = 0;
 
-    // Zoom Handlers
-    img.addEventListener('dblclick', (e) => {
+    img.addEventListener('dblclick', () => {
         if (scale === 1) {
             scale = 2;
             img.classList.add('zoomed');
@@ -370,121 +291,75 @@ function initLightboxGestures() {
         }
     });
 
-    // Mobile Swipe for Navigation (only if not zoomed)
-    wrapper.addEventListener('touchstart', (e) => {
-        touchStartX = e.changedTouches[0].screenX;
-    }, { passive: true });
-
+    wrapper.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
     wrapper.addEventListener('touchend', (e) => {
         touchEndX = e.changedTouches[0].screenX;
         handleSwipe();
     }, { passive: true });
 
     function handleSwipe() {
-        if (scale > 1) return; // Don't swipe nav if zoomed
-
+        if (scale > 1) return;
         const threshold = 50;
-        if (touchEndX < touchStartX - threshold) changeLightboxImage(1); // Swipe Left -> Next
-        if (touchEndX > touchStartX + threshold) changeLightboxImage(-1); // Swipe Right -> Prev
-    }
-
-    function resetZoom(el) {
-        scale = 1;
-        panning = false;
-        pointX = 0;
-        pointY = 0;
-        el.style.transform = `translate(0px, 0px) scale(1)`;
-        el.classList.remove('zoomed');
+        if (touchEndX < touchStartX - threshold) changeLightboxImage(1);
+        if (touchEndX > touchStartX + threshold) changeLightboxImage(-1);
     }
 }
 
-// Keyboard nav
+function resetZoom(el) {
+    el.style.transform = `translate(0px, 0px) scale(1)`;
+    el.classList.remove('zoomed');
+}
+
 document.addEventListener('keydown', (e) => {
     if (!document.getElementById('lightbox')?.classList.contains('active')) return;
-
     if (e.key === 'Escape') closeLightbox();
     if (e.key === 'ArrowRight') changeLightboxImage(1);
     if (e.key === 'ArrowLeft') changeLightboxImage(-1);
 });
 
-// --- SMOOTH SCROLL & HIGHLIGHT ---
+// --- SMOOTH SCROLL ---
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         const targetId = this.getAttribute('href');
         if (targetId === '#') return;
-
         const targetElement = document.querySelector(targetId);
         if (targetElement) {
             e.preventDefault();
-            targetElement.scrollIntoView({
-                behavior: 'smooth'
-            });
-
-            // If targeting contact section, add a temporary highlight
+            targetElement.scrollIntoView({ behavior: 'smooth' });
             if (targetId === '#get-in-touch') {
                 targetElement.classList.add('contact-highlight-anim');
-                setTimeout(() => {
-                    targetElement.classList.remove('contact-highlight-anim');
-                }, 2000);
+                setTimeout(() => targetElement.classList.remove('contact-highlight-anim'), 2000);
             }
         }
     });
 });
 
-// --- MOBILE NAVIGATION ---
+// --- MOBILE NAV ---
 const mobileToggle = document.querySelector('.mobile-nav-toggle');
 const mobileOverlay = document.querySelector('.mobile-nav-overlay');
 const mobileClose = document.querySelector('.mobile-nav-close');
 const mobileLinks = document.querySelectorAll('.mobile-nav-links a');
 
-if (mobileToggle) {
-    mobileToggle.addEventListener('click', () => {
-        mobileOverlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    });
-}
-
-if (mobileClose) {
-    mobileClose.addEventListener('click', () => {
-        mobileOverlay.classList.remove('active');
-        document.body.style.overflow = '';
-    });
-}
-
-mobileLinks.forEach(link => {
-    link.addEventListener('click', () => {
-        mobileOverlay.classList.remove('active');
-        document.body.style.overflow = '';
-    });
-});
+if (mobileToggle) mobileToggle.addEventListener('click', () => { mobileOverlay.classList.add('active'); document.body.style.overflow = 'hidden'; });
+if (mobileClose) mobileClose.addEventListener('click', () => { mobileOverlay.classList.remove('active'); document.body.style.overflow = ''; });
+mobileLinks.forEach(link => link.addEventListener('click', () => { mobileOverlay.classList.remove('active'); document.body.style.overflow = ''; }));
 
 // --- RENDER EVENTS ---
-// --- RENDER EVENTS (AUTO-MIGRATION LOGIC) ---
-function renderEvents() {
-    const data = db.get();
+async function renderEvents() {
+    const data = await db.get();
     const container = document.getElementById('events-container');
-
-    // If we have a past events container, we'll render there too.
-    // Assuming the HTML might be updated later, but for now we filter upcoming for the main list.
-    // We will separate them logically here.
-
     if (!container) return;
 
-    // Get current date (midnight for fair comparison)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const allEvents = data.events || [];
-
-    // SPLIT LOGIC: separates events into 'active' (Upcoming) and 'completed' (Past)
     const upcomingEvents = [];
     const pastEvents = [];
 
     allEvents.forEach(event => {
-        if (event.isVisible === false) return; // Skip hidden
-
+        if (event.isVisible === false) return;
         const eDate = new Date(event.date);
-        // Treat invalid dates as upcoming to be safe
         if (isNaN(eDate.getTime()) || eDate >= today) {
             upcomingEvents.push(event);
         } else {
@@ -492,30 +367,23 @@ function renderEvents() {
         }
     });
 
-    // Sort: Upcoming (Nearest first), Past (Most recent first)
     const sortParams = (a, b) => {
-        // Order first if exists
         const orderDiff = (a.order || 0) - (b.order || 0);
         if (orderDiff !== 0) return orderDiff;
         return new Date(a.date) - new Date(b.date);
     };
 
     upcomingEvents.sort(sortParams);
-    pastEvents.sort((a, b) => new Date(b.date) - new Date(a.date)); // Reverse chrono for past
+    pastEvents.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    // RENDER UPCOMING (Default View)
+    // UPCOMING
     if (upcomingEvents.length === 0) {
-        container.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
-                <h3 style="color: var(--col-primary); font-size: 1.5rem; margin-bottom: 10px;">Stay Tuned!</h3>
-                <p style="color: #666; font-size: 1.1rem;">Upcoming event details will be published here.</p>
-            </div>
-        `;
+        container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;"><h3 style="color: var(--col-primary); font-size: 1.5rem; margin-bottom: 10px;">Stay Tuned!</h3><p style="color: #666; font-size: 1.1rem;">Upcoming event details will be published here.</p></div>`;
     } else {
         container.innerHTML = upcomingEvents.map((event, index) => renderEventCard(event, index, upcomingEvents)).join('');
     }
 
-    // Optional: Render Past Events if a specific container exists (e.g., #past-events-container)
+    // PAST
     const pastContainer = document.getElementById('past-events-container');
     if (pastContainer) {
         if (pastEvents.length === 0) {
@@ -530,53 +398,22 @@ function renderEvents() {
     if (pastContainer) initEventAnimations(pastContainer);
 }
 
-// Helper: Render Single Card
 function renderEventCard(event, index, listContext, isPast = false) {
     let displayDate = event.date;
     const d = new Date(event.date);
-    if (!isNaN(d.getTime())) {
-        displayDate = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
-    }
-
-    // Check if image is a video URL or external link (Basic heuristic)
-    // For now we assume image-only previews, but this hook allows future iframe expansion
-    // If we wanted to support 'video' we would check event.videoUrl or similar.
-    // Currently relying on 'src' being an image.
-
-    // Onclick: pass the filtered list so lightbox navigates correctly within the context (Upcoming vs Past)
-    // We need to serialize the list safely or just use a global ref. Using a simplified approach here:
-    // We attach data attributes and let the click handler resolve it, OR reconstruct the filter in the onclick.
-    // For simplicity/reliability in this static setup, we'll just disable lightbox nav across groups for now, 
-    // or pass the specific event image.
-
-    // Hack: passing the filtered array in the onclick string is messy. 
-    // Better: update openLightbox to accept an ID or just the image URL for single view if list is complex.
-    // Let's stick to single image view for cleanliness in this patch, or simple array.
-
-    // Quick Fix for Lightbox Context:
-    // We will just pass [event] as the list to isolate it, avoiding complex JS string injection.
+    if (!isNaN(d.getTime())) displayDate = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 
     return `
-        <div class="event-card ${isPast ? 'past-event' : ''}" 
-             style="animation-delay: ${index * 0.1}s; ${isPast ? 'opacity:0.8; filter:grayscale(0.3);' : ''}">
-            
+        <div class="event-card ${isPast ? 'past-event' : ''}" style="animation-delay: ${index * 0.1}s; ${isPast ? 'opacity:0.8; filter:grayscale(0.3);' : ''}">
             <div class="event-image-wrapper" onclick="openLightbox('${event.image}')">
-                <img 
-                    data-src="${event.image}" 
-                    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                    alt="${event.title}" 
-                    class="event-banner lazy-img"
-                >
+                <img data-src="${event.image}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="${event.title}" class="event-banner lazy-img">
                 ${event.isNew && !isPast ? '<span class="event-badge">New</span>' : ''}
                 ${isPast ? '<span class="event-badge" style="background:#555;">Completed</span>' : ''}
             </div>
-            
             <div class="event-content">
                 <div>
                     <h3 class="event-title">${event.title}</h3>
-                    <div class="event-date">
-                        <span>📅</span> ${displayDate}
-                    </div>
+                    <div class="event-date"><span>📅</span> ${displayDate}</div>
                     ${event.description ? `<p style="font-size:0.9em; color:#666; margin-top:5px; line-height:1.4;">${event.description.substring(0, 80)}${event.description.length > 80 ? '...' : ''}</p>` : ''}
                 </div>
             </div>
@@ -589,7 +426,6 @@ function initEventAnimations(container) {
         const cards = container.querySelectorAll('.event-card');
         cards.forEach((card) => card.classList.add('visible'));
 
-        // Lazy Load
         const imgObserver = new IntersectionObserver((entries, observer) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -603,9 +439,4 @@ function initEventAnimations(container) {
 
         container.querySelectorAll('.lazy-img').forEach(img => imgObserver.observe(img));
     }, 50);
-}
-
-// Initialize events on page load
-if (document.getElementById('events-container')) {
-    renderEvents();
 }
