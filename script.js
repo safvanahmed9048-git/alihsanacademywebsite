@@ -321,20 +321,27 @@ function handleEnquirySubmit(e) {
 
 // --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
-    initContent();
+    // Determine if we are on the User Side (presence of #home or #hero-title)
+    const isUserPage = document.getElementById('home') || document.getElementById('hero-title');
 
-    const form = document.getElementById('enquiry-form');
-    if (form) form.addEventListener('submit', handleEnquirySubmit);
+    if (isUserPage) {
+        initContent();
 
-    // Sticky Header Logic
-    window.addEventListener('scroll', () => {
+        const form = document.getElementById('enquiry-form');
+        if (form) form.addEventListener('submit', handleEnquirySubmit);
+
+        // Sticky Header Logic
         const header = document.querySelector('header');
-        if (window.scrollY > 50) {
-            header.classList.add('scrolled');
-        } else {
-            header.classList.remove('scrolled');
+        if (header) {
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
+                }
+            });
         }
-    });
+    }
 });
 
 // --- LIGHTBOX LOGIC ---
