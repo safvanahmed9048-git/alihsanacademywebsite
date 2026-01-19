@@ -31,7 +31,18 @@
     "alumni": 500,
     "families": 1000
   },
-  "events": [],
+  "events": [
+    {
+      "id": 1768824814168,
+      "title": "LONDON QURA'N FEST-2026",
+      "date": "2026-01-31",
+      "description": "Announcing soon. Stay tuned...",
+      "image": "https://i.ibb.co/5W5mZJys/Whats-App-Image-2026-01-18-at-6-23-48-PM.jpg",
+      "isNew": true,
+      "isVisible": true,
+      "order": 1
+    }
+  ],
   "activities": [
     {
       "title": "Annual Sports Day",
