@@ -31,21 +31,7 @@
     "alumni": 500,
     "families": 1000
   },
-  "events": [
-    {
-      "id": 3,
-      "title": "Quran Recitation Competition",
-      "date": "August 5, 2026",
-      "time": "3:00 PM - 6:00 PM",
-      "description": "Annual Quran recitation competition for students of all ages. Prizes for winners!",
-      "image": "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?w=800&q=80",
-      "location": "Online & In-Person",
-      "isNew": true,
-      "isVisible": true,
-      "order": 3,
-      "link": "#contact"
-    }
-  ],
+  "events": [],
   "activities": [
     {
       "title": "Annual Sports Day",
