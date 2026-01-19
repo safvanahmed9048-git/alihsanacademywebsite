@@ -160,22 +160,45 @@ function renderEvents(events) {
     const list = document.getElementById('admin-events-list');
     if (!list) return;
 
-    // Sort by order if exists, else index
-    const sortedEvents = events.map((e, i) => ({ ...e, originalIndex: i }))
-        .sort((a, b) => (a.order || 0) - (b.order || 0));
+    // Split events logic similar to frontend
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    list.innerHTML = sortedEvents.map((ev, index) => `
-        <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-left: 5px solid ${ev.isVisible !== false ? '#2ecc71' : '#e74c3c'};">
+    const upcoming = [];
+    const past = [];
+
+    // Map original index to keep track for editing/deleting
+    const mappedEvents = events.map((e, i) => ({ ...e, originalIndex: i }));
+
+    mappedEvents.forEach(ev => {
+        const eDate = new Date(ev.date);
+        // If invalid date or future/today, it's upcoming
+        if (isNaN(eDate.getTime()) || eDate >= today) {
+            upcoming.push(ev);
+        } else {
+            past.push(ev);
+        }
+    });
+
+    // Sort Upcoming by Order/Date
+    upcoming.sort((a, b) => (a.order || 0) - (b.order || 0));
+    // Sort Past by Date Descending
+    past.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    const renderCard = (ev, isPast) => `
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-left: 5px solid ${isPast ? '#95a5a6' : (ev.isVisible !== false ? '#2ecc71' : '#e74c3c')}; opacity: ${isPast ? '0.8' : '1'}; background: ${isPast ? '#f9f9f9' : 'white'};">
             <div style="display:flex; gap:15px; align-items:center; flex: 1;">
                 <div style="display:flex; flex-direction:column; gap:2px;">
+                    ${!isPast ? `
                     <button onclick="moveEvent(${ev.originalIndex}, -1)" style="border:none; background:none; cursor:pointer;" title="Move Up">▲</button>
                     <button onclick="moveEvent(${ev.originalIndex}, 1)" style="border:none; background:none; cursor:pointer;" title="Move Down">▼</button>
+                    ` : ''}
                 </div>
                 <img src="${ev.image}" style="width:60px; height:60px; object-fit:cover; border-radius:6px; background:#eee;">
                 <div>
-                    <strong style="display:block; font-size:1.1rem;">${ev.title}</strong>
-                    <span style="color:#666; font-size:0.9rem;">${ev.date}</span>
-                    ${ev.isNew ? '<span class="badge badge-new" style="margin-left:5px;">New</span>' : ''}
+                    <strong style="display:block; font-size:1.1rem; color: ${isPast ? '#666' : '#000'};">${ev.title}</strong>
+                    <span style="color:#666; font-size:0.9rem;">${ev.date} ${isPast ? '(Completed)' : ''}</span>
+                    ${ev.isNew && !isPast ? '<span class="badge badge-new" style="margin-left:5px;">New</span>' : ''}
                     ${ev.isVisible === false ? '<span class="badge" style="background:#e74c3c; color:white;">Hidden</span>' : ''}
                 </div>
             </div>
@@ -187,7 +210,22 @@ function renderEvents(events) {
                 <button class="btn btn-outline" style="color:red; border-color:red;" onclick="deleteEvent(${ev.originalIndex})">Delete</button>
             </div>
         </div>
-    `).join('');
+    `;
+
+    let html = '';
+
+    // Upcoming Section
+    html += `<h3 style="margin: 20px 0 10px; color: var(--col-primary);">📅 Upcoming & Active Events</h3>`;
+    if (upcoming.length === 0) html += `<p style="color:#888; font-style:italic;">No upcoming events scheduled.</p>`;
+    html += upcoming.map(ev => renderCard(ev, false)).join('');
+
+    // Past Section
+    if (past.length > 0) {
+        html += `<h3 style="margin: 40px 0 10px; color: #7f8c8d; border-top: 2px dashed #eee; padding-top: 20px;">🕰️ Past Events (Archived)</h3>`;
+        html += past.map(ev => renderCard(ev, true)).join('');
+    }
+
+    list.innerHTML = html;
 }
 
 function handleEventSubmit(e) {
