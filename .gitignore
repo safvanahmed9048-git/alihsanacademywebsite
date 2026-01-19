@@ -1,0 +1,8 @@
+node_modules/
+.next/
+dist/
+.env
+.DS_Store
+.agent/
+_legacy_backup/
+al-ihsan-legacy-backup/

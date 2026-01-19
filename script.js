@@ -108,10 +108,10 @@ const DEFAULT_DATA = {
         { title: "Science Fair", date: "March 5, 2026", desc: "Showcasing student innovation.", img: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80&w=500" }
     ],
     gallery: [
-        "https://images.unsplash.com/photo-1542810634-71277d95dcbb?auto=format&fit=crop&q=80&w=600",
-        "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&q=80&w=600",
-        "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=600",
-        "https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&q=80&w=600"
+        "about-1.jpg",
+        "about-2.jpg",
+        "about-3.jpg",
+        "about-4.jpg"
     ],
     enquiries: []
 };
@@ -159,6 +159,12 @@ if (currentData.contact.email === "info@alihsanacademy.com" || currentData.conta
     currentData.contact.phone = DEFAULT_DATA.contact.phone;
     currentData.contact.whatsapp = DEFAULT_DATA.contact.whatsapp;
     currentData.contact.address = DEFAULT_DATA.contact.address;
+    dataChanged = true;
+}
+
+// Force update Gallery to Local Images if using old Unsplash links
+if (currentData.gallery && currentData.gallery.some(img => img.includes('unsplash.com'))) {
+    currentData.gallery = DEFAULT_DATA.gallery;
     dataChanged = true;
 }
 
@@ -222,9 +228,11 @@ function initContent() {
     document.querySelectorAll('.app-address').forEach(el => el.textContent = data.contact.address);
 
     // Dynamic Links
-    const waLink = `https://wa.me/${data.contact.whatsapp.replace(/[^0-9]/g, '')}`;
+    const waLink = `https://wa.me/${data.contact.whatsapp.replace(/[^0-9]/g, '')}`; // Strip non-numeric
+    const phoneLink = `tel:${data.contact.phone.replace(/[^0-9+]/g, '')}`; // Strip spaces/dashes, keep +
+
     document.querySelectorAll('.link-whatsapp').forEach(el => el.href = waLink);
-    document.querySelectorAll('.link-phone').forEach(el => el.href = `tel:${data.contact.phone}`);
+    document.querySelectorAll('.link-phone').forEach(el => el.href = phoneLink);
     document.querySelectorAll('.link-email').forEach(el => el.href = `mailto:${data.contact.email}`);
 
     // Socials
