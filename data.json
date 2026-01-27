@@ -51,6 +51,16 @@
       "isNew": true,
       "isVisible": true,
       "order": 1
+    },
+    {
+      "id": 1769497479610,
+      "title": "SHAB-E-BARAT",
+      "date": "2026-02-01",
+      "description": "SHAB-E-BARAT Special Day program",
+      "image": "https://i.ibb.co/sdw8tcNj/Whats-App-Image-2026-01-27-at-12-26-53-PM.jpg",
+      "isNew": true,
+      "isVisible": true,
+      "order": 3
     }
   ],
   "activities": [
