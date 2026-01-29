@@ -6,15 +6,21 @@
     margin-top: 40px;
 }
 
-@media (min-width: 600px) {
+@media (min-width: 550px) {
     .events-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 900px) {
     .events-grid {
         grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1200px) {
+    .events-grid {
+        grid-template-columns: repeat(4, 1fr);
     }
 }
 
@@ -260,22 +266,12 @@
     transition-delay: 0.5s;
 }
 
-@media (min-width: 768px) {
-    .events-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (min-width: 1200px) {
-    .events-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
+/* Consolidated grid queries to top of file */
 
 /* Event Card - Rectangle Design */
 .event-card {
     background: var(--col-white);
-    border-radius: 16px;
+    border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -303,7 +299,7 @@
 .event-image-wrapper {
     position: relative;
     width: 100%;
-    height: 220px;
+    height: 160px;
     overflow: hidden;
     background: linear-gradient(135deg, #f0f2f0 0%, #e0e0e0 100%);
 }
@@ -353,7 +349,7 @@
 
 /* Content Area */
 .event-content {
-    padding: 25px;
+    padding: 18px;
 }
 
 .event-meta {
@@ -377,7 +373,7 @@
 }
 
 .event-title {
-    font-size: 1.35rem;
+    font-size: 1.15rem;
     color: var(--col-primary);
     margin-bottom: 12px;
     font-family: 'Playfair Display', serif;
@@ -391,7 +387,7 @@
 
 .event-desc {
     color: var(--col-text-muted);
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     line-height: 1.6;
     margin-bottom: 20px;
     display: -webkit-box;
@@ -445,8 +441,8 @@
 /* Loading Skeletons */
 .loading-skeleton-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 30px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
 }
 
 .skeleton-card {
@@ -454,7 +450,7 @@
     background-size: 200% 100%;
     animation: skeleton-loading 1.5s infinite;
     border-radius: var(--radius-md);
-    height: 400px;
+    height: 300px;
 }
 
 @keyframes skeleton-loading {
