@@ -54,11 +54,18 @@ async function initContent() {
     const data = await db.get();
 
     // Hero
+    // Hero
     const heroTitle = document.getElementById('hero-title');
     if (heroTitle) {
         heroTitle.textContent = data.hero.title;
         document.getElementById('hero-subtitle').textContent = data.hero.subtitle;
-        document.querySelector('.hero').style.backgroundImage = `url('${data.hero.image}')`;
+
+        const heroSection = document.querySelector('.hero');
+        heroSection.style.backgroundImage = `url('${data.hero.image}')`;
+
+        if (data.hero.slides && data.hero.slides.length > 1) {
+            initHeroSlideshow(heroSection, data.hero.slides);
+        }
     }
 
     // Stats
@@ -343,6 +350,23 @@ const mobileLinks = document.querySelectorAll('.mobile-nav-links a');
 if (mobileToggle) mobileToggle.addEventListener('click', () => { mobileOverlay.classList.add('active'); document.body.style.overflow = 'hidden'; });
 if (mobileClose) mobileClose.addEventListener('click', () => { mobileOverlay.classList.remove('active'); document.body.style.overflow = ''; });
 mobileLinks.forEach(link => link.addEventListener('click', () => { mobileOverlay.classList.remove('active'); document.body.style.overflow = ''; }));
+
+// --- HERO SLIDESHOW ---
+function initHeroSlideshow(element, slides) {
+    let currentSlide = 0;
+
+    // Preload images to prevent flickering
+    slides.forEach(src => {
+        const img = new Image();
+        img.src = src;
+    });
+
+    // Start rotation
+    setInterval(() => {
+        currentSlide = (currentSlide + 1) % slides.length;
+        element.style.backgroundImage = `url('${slides[currentSlide]}')`;
+    }, 5000); // 5 seconds per slide
+}
 
 // --- RENDER EVENTS ---
 async function renderEvents() {

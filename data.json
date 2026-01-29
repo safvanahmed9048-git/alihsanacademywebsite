@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "lastUpdated": "2026-01-19T17:40:00Z"
+    "lastUpdated": "2026-01-29T10:00:00Z"
   },
   "contact": {
     "phone": "+44 7917 044585",
@@ -16,7 +16,13 @@
   "hero": {
     "title": "Welcome to AL-IHSAN Academy",
     "subtitle": "Building a Generation for Tomorrow",
-    "image": "hero-bg.jpg",
+    "image": "hero-slides/slide-1.jpg",
+    "slides": [
+      "hero-slides/slide-1.jpg",
+      "hero-slides/slide-2.jpg",
+      "hero-slides/slide-3.jpg",
+      "hero-slides/slide-4.jpg"
+    ],
     "ctaText": "Read More",
     "ctaLink": "#about"
   },

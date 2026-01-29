@@ -232,6 +232,7 @@ header.scrolled {
   background-position: center;
   color: var(--col-white);
   overflow: hidden;
+  transition: background-image 1s ease-in-out;
 }
 
 .hero-overlay {
