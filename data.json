@@ -57,6 +57,16 @@
       "isNew": true,
       "isVisible": true,
       "order": 3
+    },
+    {
+      "id": 1770119164185,
+      "title": "London Quran Fest",
+      "date": "20226-04-04",
+      "description": "London Quran Fest-2026",
+      "image": "https://i.ibb.co/5W5mZJys/Whats-App-Image-2026-01-18-at-6-23-48-PM.jpg",
+      "isNew": false,
+      "isVisible": true,
+      "order": 3
     }
   ],
   "activities": [
