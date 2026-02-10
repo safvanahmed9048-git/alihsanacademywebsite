@@ -67,6 +67,16 @@
       "isNew": false,
       "isVisible": true,
       "order": 3
+    },
+    {
+      "id": 1770715458264,
+      "title": "Ahlan Ramadan",
+      "date": "2026-02-15",
+      "description": "",
+      "image": "https://ibb.co/TxmRr5jM",
+      "isNew": true,
+      "isVisible": true,
+      "order": 4
     }
   ],
   "activities": [
