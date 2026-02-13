@@ -1149,7 +1149,7 @@ footer::before {
 
 /* Video Preview Section */
 .video-preview-container {
-  max-width: 100px;
+  max-width: 250px;
   margin: 0 auto;
   position: relative;
 }
@@ -1200,8 +1200,8 @@ footer::before {
 }
 
 .play-icon-box {
-  width: 30px;
-  height: 30px;
+  width: 60px;
+  height: 60px;
   background: var(--col-gold);
   border-radius: 50%;
   display: flex;
@@ -1209,13 +1209,13 @@ footer::before {
   justify-content: center;
   color: #fff;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 0 10px rgba(197, 160, 89, 0.4);
+  box-shadow: 0 0 20px rgba(197, 160, 89, 0.4);
 }
 
 .play-icon-box svg {
-  width: 15px;
-  height: 15px;
-  margin-left: 2px;
+  width: 30px;
+  height: 30px;
+  margin-left: 4px;
 }
 
 .video-preview-card:hover .play-icon-box {
