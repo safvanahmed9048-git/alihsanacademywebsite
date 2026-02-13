@@ -67,6 +67,16 @@
       "isNew": false,
       "isVisible": true,
       "order": 3
+    },
+    {
+      "id": 1770998744291,
+      "title": "Ahlan Ramadan",
+      "date": "2026-02-15",
+      "description": "Let's welcome Ramadan-Special program for students",
+      "image": "https://i.ibb.co/zVngLJJC/Whats-App-Image-2026-02-09-at-6-58-19-PM.jpg",
+      "isNew": true,
+      "isVisible": true,
+      "order": 4
     }
   ],
   "activities": [
