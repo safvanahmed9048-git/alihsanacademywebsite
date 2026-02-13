@@ -318,11 +318,56 @@ function resetZoom(el) {
 }
 
 document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeVideoModal();
+        closeLightbox();
+    }
     if (!document.getElementById('lightbox')?.classList.contains('active')) return;
-    if (e.key === 'Escape') closeLightbox();
     if (e.key === 'ArrowRight') changeLightboxImage(1);
     if (e.key === 'ArrowLeft') changeLightboxImage(-1);
 });
+
+// --- VIDEO MODAL LOGIC ---
+function openVideoModal(videoId) {
+    let modal = document.getElementById('video-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'video-modal';
+        modal.className = 'video-modal';
+        modal.innerHTML = `
+            <div class="video-modal-content">
+                <button class="video-modal-close" onclick="closeVideoModal()">&times;</button>
+                <div id="video-iframe-container" style="width:100%; height:100%;"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeVideoModal();
+        });
+    }
+
+    const container = document.getElementById('video-iframe-container');
+    container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
+        frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen></iframe>`;
+
+    modal.style.display = 'flex';
+    setTimeout(() => modal.classList.add('active'), 10);
+    document.body.style.overflow = 'hidden';
+}
+
+function closeVideoModal() {
+    const modal = document.getElementById('video-modal');
+    if (modal) {
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.style.display = 'none';
+            document.getElementById('video-iframe-container').innerHTML = '';
+        }, 400);
+        document.body.style.overflow = '';
+    }
+}
+
 
 // --- SMOOTH SCROLL ---
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
