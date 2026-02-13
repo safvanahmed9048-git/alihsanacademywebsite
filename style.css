@@ -1149,7 +1149,7 @@ footer::before {
 
 /* Video Preview Section */
 .video-preview-container {
-  max-width: 250px;
+  max-width: 350px;
   margin: 0 auto;
   position: relative;
 }
@@ -1200,8 +1200,8 @@ footer::before {
 }
 
 .play-icon-box {
-  width: 60px;
-  height: 60px;
+  width: 70px;
+  height: 70px;
   background: var(--col-gold);
   border-radius: 50%;
   display: flex;
@@ -1213,9 +1213,9 @@ footer::before {
 }
 
 .play-icon-box svg {
-  width: 30px;
-  height: 30px;
-  margin-left: 4px;
+  width: 35px;
+  height: 35px;
+  margin-left: 5px;
 }
 
 .video-preview-card:hover .play-icon-box {
