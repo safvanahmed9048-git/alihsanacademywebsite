@@ -87,6 +87,16 @@
       "isNew": true,
       "isVisible": true,
       "order": 5
+    },
+    {
+      "id": 1772680245551,
+      "title": "Badr Commemoration Day",
+      "date": "2026-03-07",
+      "description": "",
+      "image": "https://ibb.co/SDydTSH2",
+      "isNew": true,
+      "isVisible": true,
+      "order": 6
     }
   ],
   "activities": [
