@@ -24,6 +24,65 @@
     }
 }
 
+/* Past Events Specific Grid - More compact/smaller blocks */
+.past-events-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+@media (min-width: 768px) {
+    .past-events-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .past-events-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (min-width: 1400px) {
+    .past-events-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+/* Past Event Card Adjustments - Reducing block size */
+.past-event {
+    transform: translateY(20px);
+    /* Slightly less offset */
+}
+
+.past-event .event-image-wrapper {
+    height: 130px !important;
+    /* Force reduction in image height */
+}
+
+.past-event .event-content {
+    padding: 12px !important;
+    /* More compact content */
+}
+
+.past-event .event-title {
+    font-size: 1rem !important;
+    margin-bottom: 4px !important;
+}
+
+.past-event .event-date {
+    font-size: 0.75rem !important;
+    padding: 4px 10px !important;
+    border-radius: 6px !important;
+}
+
+.past-event .event-badge {
+    padding: 5px 12px !important;
+    font-size: 0.65rem !important;
+    top: 10px !important;
+    right: 10px !important;
+}
+
+
 /* Event Card - Rectangle Design */
 .event-card {
     background: var(--col-white);
@@ -556,5 +615,18 @@
         display: flex;
         align-items: center;
         gap: 15px;
+    }
+}
+
+/* Mobile Layout Fixes */
+@media (max-width: 768px) {
+    .events-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .past-events-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
     }
 }

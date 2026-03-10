@@ -874,10 +874,25 @@ footer::before {
     justify-content: center;
   }
 
-  .hero h1 {}
-
   .about-content {
     flex-direction: column;
+  }
+
+  .about-image {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    width: 100%;
+    flex: auto;
+    /* override desktop flex basis */
+  }
+
+  .about-image img {
+    height: 180px;
+    /* Give them a specific height so they don't squash */
+    width: 100%;
+    object-fit: cover;
+    border-radius: 16px;
   }
 
   .stat-card {

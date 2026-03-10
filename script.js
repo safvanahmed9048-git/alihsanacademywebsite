@@ -445,6 +445,11 @@ async function renderEvents() {
     upcomingEvents.sort(sortParams);
     pastEvents.sort((a, b) => new Date(b.date) - new Date(a.date));
 
+    window.__eventsData = {
+        upcoming: upcomingEvents.map(e => e.image),
+        past: pastEvents.map(e => e.image)
+    };
+
     // UPCOMING
     if (upcomingEvents.length === 0) {
         container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;"><h3 style="color: var(--col-primary); font-size: 1.5rem; margin-bottom: 10px;">Stay Tuned!</h3><p style="color: #666; font-size: 1.1rem;">Upcoming event details will be published here.</p></div>`;
@@ -472,10 +477,13 @@ function renderEventCard(event, index, listContext, isPast = false) {
     const d = new Date(event.date);
     if (!isNaN(d.getTime())) displayDate = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 
+    const descLimit = isPast ? 50 : 100;
+    const description = event.description ? (event.description.substring(0, descLimit) + (event.description.length > descLimit ? '...' : '')) : '';
+
     return `
         <div class="event-card ${isPast ? 'past-event' : ''}" style="animation-delay: ${index * 0.1}s; ${isPast ? 'opacity:0.8; filter:grayscale(0.3);' : ''}">
-            <div class="event-image-wrapper" onclick="openLightbox('${event.image}')">
-                <img data-src="${event.image}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="${event.title}" class="event-banner lazy-img">
+            <div class="event-image-wrapper" onclick="openLightbox(window.__eventsData.${isPast ? 'past' : 'upcoming'}, ${index})">
+                <img data-src="${event.image}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="${event.title}" class="event-banner lazy-img" loading="lazy">
                 ${event.isNew && !isPast ? '<span class="event-badge">New</span>' : ''}
                 ${isPast ? '<span class="event-badge" style="background:#555;">Completed</span>' : ''}
             </div>
@@ -483,7 +491,7 @@ function renderEventCard(event, index, listContext, isPast = false) {
                 <div>
                     <h3 class="event-title">${event.title}</h3>
                     <div class="event-date"><span>📅</span> ${displayDate}</div>
-                    ${event.description ? `<p style="font-size:0.9em; color:#666; margin-top:5px; line-height:1.4;">${event.description.substring(0, 80)}${event.description.length > 80 ? '...' : ''}</p>` : ''}
+                    ${description ? `<p style="font-size:0.85em; color:#666; margin-top:5px; line-height:1.4;">${description}</p>` : ''}
                 </div>
             </div>
         </div>
