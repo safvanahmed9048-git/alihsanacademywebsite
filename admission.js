@@ -11,7 +11,37 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Setup Form & Photo Upload
     setupPhotoUpload();
     setupFormSubmission();
+    setupClassSelectionLogic();
 });
+
+function setupClassSelectionLogic() {
+    const checkboxes = document.querySelectorAll('input[name="classType"]');
+    
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+            const val = this.value;
+            const isChecked = this.checked;
+
+            if (!isChecked) return; // Only care about checking
+
+            // Mutually Exclusive Group (Group A)
+            const groupA = [
+                'Malayalam Language Class',
+                'Moral Class – Madrasa',
+                'Both (Malayalam Language Class & Moral Class – Madrasa)'
+            ];
+
+            if (groupA.includes(val)) {
+                // Unselect other items in Group A
+                checkboxes.forEach(other => {
+                    if (groupA.includes(other.value) && other.value !== val) {
+                        other.checked = false;
+                    }
+                });
+            }
+        });
+    });
+}
 
 let studentPhotoBase64 = null;
 
@@ -110,7 +140,18 @@ function setupFormSubmission() {
         // Custom validations
         const checkboxes = document.querySelectorAll('input[name="classType"]:checked');
         const checkboxError = document.getElementById('checkbox-error');
-        if (checkboxes.length === 0) {
+        
+        // Group A values
+        const groupAValues = [
+            'Malayalam Language Class',
+            'Moral Class – Madrasa',
+            'Both (Malayalam Language Class & Moral Class – Madrasa)'
+        ];
+
+        const hasGroupA = Array.from(checkboxes).some(cb => groupAValues.includes(cb.value));
+
+        if (!hasGroupA) {
+            checkboxError.textContent = 'Please select at least one core class type (Malayalam, Madrasa, or Both).';
             checkboxError.classList.remove('hidden');
             return;
         } else {
