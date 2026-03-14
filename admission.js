@@ -24,21 +24,27 @@ function setupClassSelectionLogic() {
 
             if (!isChecked) return; // Only care about checking
 
-            // Mutually Exclusive Group (Group A)
-            const groupA = [
-                'Malayalam Language Class',
-                'Moral Class – Madrasa',
-                'Both (Malayalam Language Class & Moral Class – Madrasa)'
-            ];
+            // Values exactly as in HTML
+            const VAL_MALAYALAM = 'Malayalam Language Class';
+            const VAL_MADRASSA  = 'Moral Class - Madrassa';
+            const VAL_BOTH      = 'Both (Malayalam Language Class & Moral Class – Madrasa)';
 
-            if (groupA.includes(val)) {
-                // Unselect other items in Group A
+            if (val === VAL_BOTH) {
+                // If "Both" selected, automatically unselect individual Malayalam and Madrasa
                 checkboxes.forEach(other => {
-                    if (groupA.includes(other.value) && other.value !== val) {
+                    if (other.value === VAL_MALAYALAM || other.value === VAL_MADRASSA) {
+                        other.checked = false;
+                    }
+                });
+            } else if (val === VAL_MALAYALAM || val === VAL_MADRASSA) {
+                // If individual Malayalam or Madrasa selected, automatically unselect "Both"
+                checkboxes.forEach(other => {
+                    if (other.value === VAL_BOTH) {
                         other.checked = false;
                     }
                 });
             }
+            // Hifz is independent, no logic needed here
         });
     });
 }
