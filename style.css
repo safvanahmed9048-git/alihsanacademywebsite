@@ -1023,9 +1023,33 @@ footer::before {
     border-radius: 16px;
   }
 
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    padding: 20px;
+  }
+
   .stat-card {
+    padding: 15px 5px;
     border-right: none;
+    border-bottom: none;
+  }
+
+  .stat-card:nth-child(odd) {
+    border-right: 1px solid #eee;
+  }
+
+  .stat-card:nth-child(1), .stat-card:nth-child(2) {
     border-bottom: 1px solid #eee;
+  }
+
+  .stat-number {
+    font-size: 2rem !important;
+  }
+
+  .stat-label {
+    font-size: 0.7rem !important;
+    letter-spacing: 0.5px;
   }
 
   /* Hide Desktop specific things on mobile if needed */
