@@ -35,10 +35,13 @@
             </nav>
             <div class="header-actions">
                 <a href="#contact" class="btn btn-primary btn-pulse hide-mobile">Admission Enquiry</a>
-                <button class="mobile-nav-toggle" aria-label="Toggle Menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
+                <button class="mobile-nav-toggle" aria-label="Open navigation menu">
+                    <span class="menu-text">Menu</span>
+                    <div class="hamburger-box">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
                 </button>
             </div>
         </div>
@@ -51,10 +54,10 @@
             <ul class="mobile-nav-links">
                 <li><a href="#home">Home</a></li>
                 <li><a href="#about">About Us</a></li>
+                <li><a href="#academics">Programs</a></li>
+                <li><a href="#contact">Admissions</a></li>
                 <li><a href="#events">Upcoming Events</a></li>
-                <li><a href="#academics">Academics</a></li>
                 <li><a href="#gallery">Gallery</a></li>
-                <li><a href="#social-connect">Social Connect</a></li>
                 <li><a href="#get-in-touch">Contact</a></li>
                 <li style="margin-top: 20px;"><a href="admission.html" class="btn btn-gold"
                         style="width: 100%; text-align: center;">New Admission</a></li>
@@ -489,6 +492,38 @@
             </div>
         </div>
     </footer>
+
+    <!-- Bottom Quick Navigation (Mobile Only) -->
+    <nav class="bottom-nav hide-desktop">
+        <a href="#home" class="bottom-nav-item">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Home</span>
+        </a>
+        <a href="#academics" class="bottom-nav-item">
+            <span class="nav-icon">📚</span>
+            <span class="nav-label">Programs</span>
+        </a>
+        <a href="admission.html" class="bottom-nav-item admission-highlight">
+            <div class="nav-icon-circle">
+                <span class="nav-icon">📝</span>
+            </div>
+            <span class="nav-label">ADMISSION</span>
+        </a>
+        <a href="#events" class="bottom-nav-item">
+            <span class="nav-icon">📅</span>
+            <span class="nav-label">Events</span>
+        </a>
+        <a href="#get-in-touch" class="bottom-nav-item">
+            <span class="nav-icon">☎</span>
+            <span class="nav-label">Contact</span>
+        </a>
+    </nav>
+
+    <!-- Floating New Admission Button (Mobile Only) -->
+    <a href="admission.html" class="fab-admission hide-desktop" aria-label="Start New Admission">
+        <span class="fab-icon">📝</span>
+        <span class="fab-text">New Admission</span>
+    </a>
 
     <script src="script.js"></script>
 </body>
