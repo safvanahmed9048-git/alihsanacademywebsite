@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>New Admission | AL-IHSAN Academy</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admission.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+    
+    <!-- Stripe JS for Checkout redirect -->
+    <script src="https://js.stripe.com/v3/"></script>
+    <!-- reCAPTCHA -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+<body class="bg-gray">
+    <!-- Header -->
+    <header class="admission-header">
+        <div class="container nav-container" style="justify-content: center;">
+            <a href="index.html" class="logo">
+                <img src="logo-transparent.png" alt="AL-IHSAN Academy" style="height: 60px;">
+            </a>
+        </div>
+    </header>
+
+    <div class="container mobile-container admission-wrapper">
+        <div class="admission-card">
+            
+            <div class="text-center form-header">
+                <h4 class="text-gold">Join the Academy</h4>
+                <h2>New Admission</h2>
+                <p>Please fill out all mandatory fields carefully to proceed with admission.</p>
+            </div>
+
+            <!-- Pre-loader during submission -->
+            <div id="loader" class="loader-overlay hidden">
+                <div class="spinner"></div>
+                <p id="loader-text">Processing your application...</p>
+            </div>
+
+            <!-- SUCCESS VIEW -->
+            <div id="success-view" class="hidden text-center success-container">
+                <div class="success-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                </div>
+                <h2 style="color: var(--col-primary); margin-bottom: 10px;">Admission Successful</h2>
+                <p style="margin-bottom: 30px;">Your admission has been successfully completed.</p>
+                
+                <div class="receipt-details text-left">
+                    <div class="detail-row">
+                        <span>Student Name</span>
+                        <strong id="succ-student"></strong>
+                    </div>
+                    <div class="detail-row">
+                        <span>Admission Number</span>
+                        <strong id="succ-adminno" class="text-gold" style="font-size:1.2rem;"></strong>
+                    </div>
+                    <div class="detail-row">
+                        <span>Class</span>
+                        <strong id="succ-class"></strong>
+                    </div>
+                    <div class="detail-row">
+                        <span>Date</span>
+                        <strong id="succ-date"></strong>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <button id="btn-download-pdf" class="btn btn-primary" style="width: 100%; border-radius: 8px;">
+                        <svg style="width:20px; vertical-align:-5px; margin-right:5px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        Download Admission Receipt
+                    </button>
+                    <a href="index.html" class="btn btn-outline" style="width: 100%; margin-top: 15px; border-radius: 8px;">Back to Home</a>
+                </div>
+            </div>
+
+            <!-- FORM VIEW -->
+            <form id="admission-form" class="admission-form">
+                
+                <div class="form-section">
+                    <h3>Student Details</h3>
+                    <div class="form-group required">
+                        <label for="studentName">Name of Student</label>
+                        <input type="text" id="studentName" name="studentName" class="form-control" required placeholder="Full Name as per records">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group required">
+                            <label for="gender">Gender</label>
+                            <select id="gender" name="gender" class="form-control" required>
+                                <option value="" disabled selected>Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div class="form-group required">
+                            <label for="dob">Date of Birth</label>
+                            <input type="date" id="dob" name="dob" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group required">
+                        <label for="studentPhoto">Student Photo <span style="font-weight:normal; font-size:0.85rem; color:#666;">(With cap / makkana. JPG/PNG, Max 5MB)</span></label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="studentPhoto" name="studentPhoto" class="form-control" accept="image/jpeg, image/png" required>
+                            <div class="photo-preview-box hidden" id="photo-preview">
+                                <img id="preview-img" src="" alt="Preview">
+                                <button type="button" id="btn-remove-photo" class="btn-remove">&times;</button>
+                            </div>
+                        </div>
+                        <p id="file-error" class="error-msg hidden"></p>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Guardian Details</h3>
+                    <div class="form-group required">
+                        <label for="guardianName">Name of Father / Guardian</label>
+                        <input type="text" id="guardianName" name="guardianName" class="form-control" required placeholder="Full Name">
+                    </div>
+
+                    <div class="form-group required">
+                        <label for="email">Email of Guardian</label>
+                        <input type="email" id="email" name="email" class="form-control" required placeholder="valid.email@example.com">
+                    </div>
+
+                    <div class="form-group required">
+                        <label for="whatsapp">WhatsApp Number <span style="font-weight:normal; font-size:0.85rem; color:#666;">(With country code)</span></label>
+                        <input type="tel" id="whatsapp" name="whatsapp" class="form-control" required placeholder="+44 7123 456789" pattern="^\+?[0-9\s\-]{8,20}$">
+                        <small style="color: #666; font-size: 0.8rem;">Example: +44 7783 063060</small>
+                    </div>
+
+                    <div class="form-group required">
+                        <label for="address">Postal Address</label>
+                        <textarea id="address" name="address" class="form-control" rows="3" required placeholder="Full residential address"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Enrollment Details</h3>
+                    <div class="form-group required">
+                        <label for="classAdmitted">Class Admitted To</label>
+                        <select id="classAdmitted" name="classAdmitted" class="form-control" required>
+                            <option value="" disabled selected>Select Class</option>
+                            <option value="Class 01">Class 01</option>
+                            <option value="Class 02">Class 02</option>
+                            <option value="Class 03">Class 03</option>
+                            <option value="Class 04">Class 04</option>
+                            <option value="Class 05">Class 05</option>
+                            <option value="Class 06">Class 06</option>
+                            <option value="Class 07">Class 07</option>
+                            <option value="Class 08">Class 08</option>
+                            <option value="Class 09">Class 09</option>
+                            <option value="Class 10">Class 10</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group required">
+                        <label>Type of Class <span style="font-weight:normal; font-size:0.85rem; color:#666;">(Multiple selection allowed)</span></label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-container">
+                                <input type="checkbox" name="classType" value="Moral Class - Madrassa">
+                                <span class="checkmark"></span>
+                                Moral Class – Madrassa
+                            </label>
+                            <label class="checkbox-container">
+                                <input type="checkbox" name="classType" value="Malayalam Language Class">
+                                <span class="checkmark"></span>
+                                Malayalam Language Class
+                            </label>
+                            <label class="checkbox-container">
+                                <input type="checkbox" name="classType" value="Both">
+                                <span class="checkmark"></span>
+                                Both
+                            </label>
+                            <label class="checkbox-container">
+                                <input type="checkbox" name="classType" value="Hifz">
+                                <span class="checkmark"></span>
+                                Hifz
+                            </label>
+                        </div>
+                        <p id="checkbox-error" class="error-msg hidden">Please select at least one class type.</p>
+                    </div>
+
+                    <div class="form-group required">
+                        <label for="doj">Date of Joining</label>
+                        <input type="date" id="doj" name="doj" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Payment</h3>
+                    
+                    <div class="payment-info box-info">
+                        <strong>Fee Payment:</strong> Upon submission, you will be redirected to our secure payment gateway (Stripe) to pay the admission fee. Your admission is only recorded after a successful payment.
+                    </div>
+                </div>
+
+                <div id="general-error" class="error-msg hidden text-center" style="margin-bottom:15px; font-weight:bold;"></div>
+
+                <button type="submit" id="btn-submit" class="btn btn-primary btn-large w-100">
+                    Proceed to Payment
+                    <svg style="width:20px; vertical-align:-4px; margin-left:5px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
+                </button>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- jsPDF for receipt generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="admission.js"></script>
+</body>
+</html>

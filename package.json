@@ -5,6 +5,8 @@
     "dependencies": {
         "bcryptjs": "^2.4.3",
         "cookie": "^0.6.0",
-        "jsonwebtoken": "^9.0.2"
+        "googleapis": "^171.4.0",
+        "jsonwebtoken": "^9.0.3",
+        "stripe": "^20.4.1"
     }
 }

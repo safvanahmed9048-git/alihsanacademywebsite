@@ -1,24 +1,34 @@
-const REGION = 'uk'; // Optional region context for logs
+const jwt = require('jsonwebtoken');
+const cookie = require('cookie');
 
 module.exports = async (req, res) => {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // Security: Validate Admin Token (Cookie or Header)
-    // For simplicity in this fix, we assume the middleware or existing auth handled it, 
-    // but ideally we check the JWT here.
-    // In api/login.js we set a cookie 'al_ihsan_token'.
-    // We strictly should verify it.
+    // 1. Security: Validate Admin Token
+    try {
+        const cookies = cookie.parse(req.headers.cookie || '');
+        const token = cookies.al_ihsan_token;
 
-    // 1. Get Data
+        if (!token) {
+            return res.status(401).json({ error: 'Unauthorized: No session found' });
+        }
+
+        jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+        console.error('Auth Error:', err);
+        return res.status(401).json({ error: 'Unauthorized: Invalid session' });
+    }
+
+    // 2. Get Data
     const newData = req.body;
     if (!newData) {
         return res.status(400).json({ error: 'No data provided' });
     }
 
-    // 2. Prepare GitHub API Request
-    const GITHUB_TOKEN = process.env.GITHUB_TOKEN; // User must set this in Vercel
+    // 3. Prepare GitHub API Request
+    const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
     const REPO_OWNER = 'safvanahmed9048-git';
     const REPO_NAME = 'alihsanacademywebsite';
     const FILE_PATH = 'data.json';
@@ -29,31 +39,34 @@ module.exports = async (req, res) => {
         return res.status(500).json({ error: 'Server configuration error: Missing GITHUB_TOKEN' });
     }
 
+    const commonHeaders = {
+        'Authorization': `Bearer ${GITHUB_TOKEN}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'Al-Ihsan-Academy-CMS'
+    };
+
     try {
         // A. Get current SHA of the file (required for update)
-        const getFileRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
-            headers: {
-                'Authorization': `Bearer ${GITHUB_TOKEN}`,
-                'Accept': 'application/vnd.github.v3+json'
-            }
+        const getFileRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}?ref=${BRANCH}`, {
+            headers: commonHeaders
         });
 
         if (!getFileRes.ok) {
-            throw new Error(`Failed to fetch file SHA: ${getFileRes.statusText}`);
+            const errorText = await getFileRes.text();
+            console.error('GitHub fetch SHA error:', errorText);
+            throw new Error(`Failed to fetch file SHA: ${getFileRes.statusText} (${getFileRes.status})`);
         }
 
         const fileData = await getFileRes.json();
         const sha = fileData.sha;
 
         // B. Update File (Commit)
-        // GitHub API requires content to be Base64 encoded
         const content = Buffer.from(JSON.stringify(newData, null, 2)).toString('base64');
 
         const updateRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
             method: 'PUT',
             headers: {
-                'Authorization': `Bearer ${GITHUB_TOKEN}`,
-                'Accept': 'application/vnd.github.v3+json',
+                ...commonHeaders,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
@@ -76,3 +89,4 @@ module.exports = async (req, res) => {
         return res.status(500).json({ error: 'Failed to save data. ' + error.message });
     }
 };
+

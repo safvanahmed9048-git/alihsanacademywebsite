@@ -39,43 +39,33 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     btn.textContent = 'Authenticating...';
     errorMsg.style.display = 'none';
 
-    // Allowed emails
-    const ALLOWED_EMAILS = [
-        'msvattoli@gmail.com',
-        'safvanahmed9048@gmail.com',
-        'academy@alihsan.co.uk'
-    ];
+    try {
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
 
-    // Password
-    const ADMIN_PASSWORD = 'Academy@01012026';
+        const result = await response.json();
 
-    // Simulate a small delay for UX
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // Check email allowlist
-    if (!ALLOWED_EMAILS.includes(email)) {
-        errorMsg.textContent = 'You are not authorized to access the admin panel.';
+        if (response.ok) {
+            // Success
+            localStorage.setItem('alIhsanAdminLogged', 'true');
+            localStorage.setItem('adminEmail', email);
+            checkAuth();
+        } else {
+            errorMsg.textContent = result.error || 'Identity verification failed.';
+            errorMsg.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Verify Identity';
+            document.getElementById('password').value = '';
+        }
+    } catch (err) {
+        errorMsg.textContent = 'Connection error. Please try again.';
         errorMsg.style.display = 'block';
         btn.disabled = false;
         btn.textContent = 'Verify Identity';
-        document.getElementById('password').value = '';
-        return;
     }
-
-    // Check password
-    if (password !== ADMIN_PASSWORD) {
-        errorMsg.textContent = 'You are not authorized to access the admin panel.';
-        errorMsg.style.display = 'block';
-        btn.disabled = false;
-        btn.textContent = 'Verify Identity';
-        document.getElementById('password').value = '';
-        return;
-    }
-
-    // Success
-    localStorage.setItem('alIhsanAdminLogged', 'true');
-    localStorage.setItem('adminEmail', email);
-    checkAuth();
 });
 
 async function logout() {
