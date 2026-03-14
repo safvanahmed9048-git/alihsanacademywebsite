@@ -141,17 +141,8 @@ function setupFormSubmission() {
         const checkboxes = document.querySelectorAll('input[name="classType"]:checked');
         const checkboxError = document.getElementById('checkbox-error');
         
-        // Group A values
-        const groupAValues = [
-            'Malayalam Language Class',
-            'Moral Class – Madrasa',
-            'Both (Malayalam Language Class & Moral Class – Madrasa)'
-        ];
-
-        const hasGroupA = Array.from(checkboxes).some(cb => groupAValues.includes(cb.value));
-
-        if (!hasGroupA) {
-            checkboxError.textContent = 'Please select at least one core class type (Malayalam, Madrasa, or Both).';
+        if (checkboxes.length === 0) {
+            checkboxError.textContent = 'Please select at least one class type.';
             checkboxError.classList.remove('hidden');
             return;
         } else {
