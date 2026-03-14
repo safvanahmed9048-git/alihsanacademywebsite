@@ -129,7 +129,30 @@ h6 {
   transform: translateY(-2px);
 }
 
-/* Header */
+/* Compact button for Nav */
+.btn-nav {
+  padding: 8px 18px !important;
+  font-size: 0.85rem !important;
+  border-radius: 8px !important;
+  text-transform: none !important;
+  letter-spacing: 0px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+/* Ensure nav-admission-item doesn't have a hover line if it's a button */
+.nav-admission-item a::after {
+  display: none !important;
+}
+
+.main-nav ul {
+  display: flex;
+  gap: 30px;
+  list-style: none;
+  align-items: center; /* Center items vertically */
+}
 header {
   position: fixed;
   top: 0;
@@ -167,11 +190,7 @@ header.scrolled {
   gap: 10px;
 }
 
-.main-nav ul {
-  display: flex;
-  gap: 30px;
-  list-style: none;
-}
+
 
 .main-nav a {
   text-decoration: none;
