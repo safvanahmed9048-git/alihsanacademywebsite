@@ -187,7 +187,8 @@ function setupFormSubmission() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     studentName: data.studentName,
-                    className: data.classAdmitted
+                    className: data.classAdmitted,
+                    fullFormData: data
                 })
             });
 
@@ -210,70 +211,59 @@ function setupFormSubmission() {
 
 async function handleSuccessRedirect(sessionId) {
     document.getElementById('admission-form').classList.add('hidden');
+    showLoader('Verifying payment. Please do not close this window...');
     
-    // Check if we have unsubmitted data
-    const pendingData = localStorage.getItem('admissionPendingData');
-    if (!pendingData) {
-        // Data missing (already processed or opened from scratch)
-        // Just verify session and show success if already processed
-        verifyPaymentOnly(sessionId);
-        return;
-    }
-
-    const data = JSON.parse(pendingData);
+    // Clear local storage data since webhook is handling it now
+    localStorage.removeItem('admissionPendingData');
     
-    showLoader('Verifying payment and storing admission data...');
-    
-    try {
-        const response = await fetch('/api/submit-admission', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                sessionId: sessionId,
-                formData: data
-            })
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-            // Success!
-            localStorage.removeItem('admissionPendingData'); // clear data
-            displaySuccess(result.admissionData);
-        } else {
-            throw new Error(result.error || 'Failed to complete admission.');
-        }
-
-    } catch (error) {
-        console.error(error);
-        hideLoader();
-        alert('An error occurred while confirming your admission: ' + error.message + '\n\nPlease contact our support if payment was deducted.');
-        // Don't remove local storage so they can retry if it's a network issue
-    }
+    pollForAdmissionSuccess(sessionId, 0);
 }
 
-async function verifyPaymentOnly(sessionId) {
-    showLoader('Verifying session...');
+// 2. Setup Form & Photo Upload (keeps existing structure)
+// We merge verifyPaymentOnly into the polling function to streamline
+async function pollForAdmissionSuccess(sessionId, attemptCount) {
+    const maxAttempts = 30; // ~60 seconds max wait
+    
     try {
         const response = await fetch('/api/submit-admission', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ sessionId: sessionId })
         });
+        
         const result = await response.json();
-        if (response.ok && result.admissionData) {
+        
+        if (response.status === 200 && result.admissionData) {
+            // Webhook finished and data is ready
             displaySuccess(result.admissionData);
+        } else if (response.status === 202) {
+            // Still processing
+            if (attemptCount < maxAttempts) {
+                setTimeout(() => pollForAdmissionSuccess(sessionId, attemptCount + 1), 2000); // 2 second intervals
+            } else {
+                showErrorState('Request timed out while generating admission number. The payment was successful, but the system is taking longer than expected. Please contact the academy for your admission number.');
+            }
         } else {
-            hideLoader();
-            document.getElementById('admission-form').classList.remove('hidden');
-            const targetError = document.getElementById('general-error');
-            targetError.textContent = 'Invalid session or admission already processed. Please submit a new form if required.';
-            targetError.classList.remove('hidden');
+            // Error state (400, 500, etc)
+            showErrorState(result.error || 'Failed to verify payment or admission.');
         }
-    } catch(e) {
-        hideLoader();
-        document.getElementById('admission-form').classList.remove('hidden');
+
+    } catch (error) {
+        console.error("Polling error:", error);
+        if (attemptCount < maxAttempts) {
+            setTimeout(() => pollForAdmissionSuccess(sessionId, attemptCount + 1), 2000);
+        } else {
+            showErrorState('Network error occurred during confirmation. If your payment was deducted, please contact the academy.');
+        }
     }
+}
+
+function showErrorState(msg) {
+    hideLoader();
+    document.getElementById('admission-form').classList.remove('hidden');
+    const targetError = document.getElementById('general-error');
+    targetError.textContent = msg;
+    targetError.classList.remove('hidden');
 }
 
 let savedAdmissionData = null;
@@ -293,6 +283,21 @@ function displaySuccess(admissionData) {
 
     document.getElementById('btn-download-pdf').addEventListener('click', generatePDF);
     
+    // Auto redirect to home after 12 seconds
+    let secondsLeft = 12;
+    const redirectTimerEl = document.getElementById('redirect-timer');
+    if (redirectTimerEl) redirectTimerEl.textContent = secondsLeft;
+    
+    const interval = setInterval(() => {
+        secondsLeft--;
+        if (redirectTimerEl) redirectTimerEl.textContent = secondsLeft;
+        
+        if (secondsLeft <= 0) {
+            clearInterval(interval);
+            window.location.href = 'index.html';
+        }
+    }, 1000);
+
     // Smooth scroll up
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }

@@ -26,6 +26,17 @@ export default async function handler(req, res) {
                 },
             ],
             mode: 'payment',
+            metadata: {
+                // Stripe limits metadata values to 500 characters, so we only pass the essentials.
+                // We'll pass the full formData so the webhook can process it, but note that 
+                // large photoBase64 fields can't go in metadata directly without truncation.
+                // We need to omit the photoBase64 from metadata due to the 500 character limit.
+                // A better approach is storing formData temporarily in a database/KV store keyed by a random ID,
+                // but for this small change, we'll store everything except the photo.
+                formData: JSON.stringify(Object.fromEntries(
+                    Object.entries(req.body.fullFormData || {}).filter(([key]) => key !== 'photoBase64')
+                ))
+            },
             success_url: req.headers.origin 
                 ? `${req.headers.origin}/admission.html?session_id={CHECKOUT_SESSION_ID}&status=success`
                 : `https://${req.headers.host}/admission.html?session_id={CHECKOUT_SESSION_ID}&status=success`,

@@ -44,17 +44,18 @@
                 <div class="success-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                 </div>
-                <h2 style="color: var(--col-primary); margin-bottom: 10px;">Admission Successful</h2>
-                <p style="margin-bottom: 30px;">Your admission has been successfully completed.</p>
+                <h2 style="color: var(--col-primary); margin-bottom: 10px;">Payment Successful</h2>
+                <p style="margin-bottom: 10px; font-weight: 500;">Your admission has been successfully registered.</p>
                 
-                <div class="receipt-details text-left">
+                <div style="background-color: #f8fbff; border-left: 4px solid var(--col-gold); padding: 15px; margin: 20px 0; display: inline-block; width: 100%; border-radius: 4px;">
+                    <span style="display: block; font-size: 0.9rem; color: #666; margin-bottom: 5px;">Admission Number</span>
+                    <strong id="succ-adminno" style="font-size: 2rem; color: var(--col-primary); letter-spacing: 1px;"></strong>
+                </div>
+
+                <div class="receipt-details text-left" style="margin-bottom: 15px;">
                     <div class="detail-row">
                         <span>Student Name</span>
                         <strong id="succ-student"></strong>
-                    </div>
-                    <div class="detail-row">
-                        <span>Admission Number</span>
-                        <strong id="succ-adminno" class="text-gold" style="font-size:1.2rem;"></strong>
                     </div>
                     <div class="detail-row">
                         <span>Class</span>
@@ -64,7 +65,17 @@
                         <span>Date</span>
                         <strong id="succ-date"></strong>
                     </div>
+                    <div class="detail-row">
+                        <span>Payment Status</span>
+                        <strong style="color: #28a745;">Successful</strong>
+                    </div>
+                    <div class="detail-row">
+                        <span>Receipt</span>
+                        <strong>Sent to your registered email</strong>
+                    </div>
                 </div>
+
+                <p style="color: var(--col-primary); font-size: 0.95rem; font-weight: 600; margin-bottom: 25px;">Please save your Admission Number for future reference.</p>
 
                 <div style="margin-top: 30px;">
                     <button id="btn-download-pdf" class="btn btn-primary" style="width: 100%; border-radius: 8px;">
