@@ -174,7 +174,6 @@ function setupFormSubmission() {
         document.querySelectorAll('input[name="classType"]:checked').forEach(el => classTypes.push(el.value));
         data.classType = classTypes.join(', ');
         data.photoBase64 = studentPhotoBase64;
-        data.recaptchaToken = captchaResponse;
 
         // Save to LocalStorage
         localStorage.setItem('admissionPendingData', JSON.stringify(data));
