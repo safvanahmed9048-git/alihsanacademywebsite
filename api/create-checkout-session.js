@@ -26,8 +26,12 @@ export default async function handler(req, res) {
                 },
             ],
             mode: 'payment',
-            success_url: `${req.headers.origin}/admission.html?session_id={CHECKOUT_SESSION_ID}&status=success`,
-            cancel_url: `${req.headers.origin}/admission.html`,
+            success_url: req.headers.origin 
+                ? `${req.headers.origin}/admission.html?session_id={CHECKOUT_SESSION_ID}&status=success`
+                : `https://${req.headers.host}/admission.html?session_id={CHECKOUT_SESSION_ID}&status=success`,
+            cancel_url: req.headers.origin
+                ? `${req.headers.origin}/admission.html`
+                : `https://${req.headers.host}/admission.html`,
         });
 
         res.status(200).json({ url: session.url });
