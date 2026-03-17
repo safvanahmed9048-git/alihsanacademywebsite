@@ -1,4 +1,4 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder'); // In production use real env var
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -20,7 +20,7 @@ export default async function handler(req, res) {
                             name: `Admission Fee - ${studentName}`,
                             description: `Admission to ${className}`,
                         },
-                        unit_amount: 2000, // £20.00 admission fee (adjustable)
+                        unit_amount: 3500, // £35.00 admission fee
                     },
                     quantity: 1,
                 },

@@ -35,21 +35,9 @@ export default async function handler(req, res) {
         const SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID; 
         const DRIVE_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID;
 
-        // Skip actual saving if ENV variables are not fully configured yet
-        if (!SPREADSHEET_ID || !credentials.private_key) {
-             console.warn("Google API not configured. Sending mock success.");
-             return res.status(200).json({
-                 admissionData: {
-                     admissionNumber: '26001',
-                     studentName: formData ? formData.studentName : session.customer_details.name,
-                     guardianName: formData ? formData.guardianName : "N/A",
-                     classAdmitted: formData ? formData.classAdmitted : "Class",
-                     classType: formData ? formData.classType : "N/A",
-                     admissionDate: new Date().toISOString(),
-                     paymentId: sessionId,
-                     amountPaid: (session.amount_total / 100).toFixed(2)
-                 }
-             });
+        if (!SPREADSHEET_ID || !credentials.private_key || !credentials.client_email) {
+             console.error("Critical API Configuration Missing");
+             return res.status(500).json({ error: "System configuration error. Please contact administration." });
         }
 
         const RANGE = 'Admissions!A:N';

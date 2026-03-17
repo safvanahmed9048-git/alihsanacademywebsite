@@ -337,7 +337,7 @@ function generatePDF() {
         { label: "Type of Class:", value: savedAdmissionData.classType },
         { label: "Date of Admission:", value: new Date(savedAdmissionData.admissionDate).toLocaleDateString() },
         { label: "Payment ID:", value: savedAdmissionData.paymentId },
-        { label: "Amount Paid:", value: "£" + (savedAdmissionData.amountPaid || "20.00") } // Hardcoded typical amount or backend provided
+        { label: "Amount Paid:", value: "£" + (savedAdmissionData.amountPaid || "35.00") } // Hardcoded typical amount or backend provided
     ];
 
     details.forEach(item => {
