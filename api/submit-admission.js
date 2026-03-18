@@ -20,25 +20,38 @@ export default async function handler(req, res) {
         }
 
         // 2. Setup Google Sheets to poll for the completed Admission Number created by the Webhook
-        function formatPrivateKey(keyString) {
-            if (!keyString) return '';
-            let key = keyString.replace(/\\n/g, '\n').replace(/"/g, '').trim();
-            const beginMatch = key.match(/-----BEGIN [\w\s]+-----/);
-            const endMatch = key.match(/-----END [\w\s]+-----/);
-            if (beginMatch && endMatch) {
-                let base64Part = key.substring(beginMatch.index + beginMatch[0].length, endMatch.index);
-                base64Part = base64Part.replace(/\s+/g, '');
-                const wrappedBase64 = base64Part.match(/.{1,64}/g)?.join('\n') || base64Part;
-                return `${beginMatch[0]}\n${wrappedBase64}\n${endMatch[0]}`;
+        function formatPrivateKey(key) {
+            if (!key) return '';
+            // Remove any surrounding quotes and whitespace
+            let cleaned = key.replace(/['"]/g, '').trim();
+            // Convert literal \n strings to actual newlines
+            cleaned = cleaned.replace(/\\n/g, '\n');
+            
+            // Extract the core base64 content if headers exist
+            const begin = '-----BEGIN PRIVATE KEY-----';
+            const end = '-----END PRIVATE KEY-----';
+            
+            if (cleaned.includes(begin) && cleaned.includes(end)) {
+                const base64Content = cleaned.split(begin)[1].split(end)[0].replace(/\s/g, '');
+                // Correctly wrap it back into 64-character lines
+                const lines = base64Content.match(/.{1,64}/g) || [base64Content];
+                return `${begin}\n${lines.join('\n')}\n${end}`;
             }
-            return key;
+            
+            // If it's just raw base64 without headers, add them
+            if (!cleaned.includes('-----BEGIN')) {
+                const base64 = cleaned.replace(/\s/g, '');
+                const lines = base64.match(/.{1,64}/g) || [base64];
+                return `${begin}\n${lines.join('\n')}\n${end}`;
+            }
+            
+            return cleaned;
         }
 
-        let privateKeyRaw = process.env.GOOGLE_PRIVATE_KEY || '';
-        let privateKey = formatPrivateKey(privateKeyRaw);
+        let privateKey = formatPrivateKey(process.env.GOOGLE_PRIVATE_KEY || '');
         
         const credentials = {
-            client_email: process.env.GOOGLE_CLIENT_EMAIL || 'your-service-account-email',
+            client_email: process.env.GOOGLE_CLIENT_EMAIL,
             private_key: privateKey,
         };
 

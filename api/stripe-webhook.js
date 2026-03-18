@@ -56,22 +56,30 @@ export default async function handler(req, res) {
 }
 
 async function processGoogleSheetsAndDrive(session, formData) {
-    function formatPrivateKey(keyString) {
-        if (!keyString) return '';
-        let key = keyString.replace(/\\n/g, '\n').replace(/"/g, '').trim();
-        const beginMatch = key.match(/-----BEGIN [\w\s]+-----/);
-        const endMatch = key.match(/-----END [\w\s]+-----/);
-        if (beginMatch && endMatch) {
-            let base64Part = key.substring(beginMatch.index + beginMatch[0].length, endMatch.index);
-            base64Part = base64Part.replace(/\s+/g, '');
-            const wrappedBase64 = base64Part.match(/.{1,64}/g)?.join('\n') || base64Part;
-            return `${beginMatch[0]}\n${wrappedBase64}\n${endMatch[0]}`;
+    function formatPrivateKey(key) {
+        if (!key) return '';
+        let cleaned = key.replace(/['"]/g, '').trim();
+        cleaned = cleaned.replace(/\\n/g, '\n');
+        
+        const begin = '-----BEGIN PRIVATE KEY-----';
+        const end = '-----END PRIVATE KEY-----';
+        
+        if (cleaned.includes(begin) && cleaned.includes(end)) {
+            const base64Content = cleaned.split(begin)[1].split(end)[0].replace(/\s/g, '');
+            const lines = base64Content.match(/.{1,64}/g) || [base64Content];
+            return `${begin}\n${lines.join('\n')}\n${end}`;
         }
-        return key;
+        
+        if (!cleaned.includes('-----BEGIN')) {
+            const base64 = cleaned.replace(/\s/g, '');
+            const lines = base64.match(/.{1,64}/g) || [base64];
+            return `${begin}\n${lines.join('\n')}\n${end}`;
+        }
+        
+        return cleaned;
     }
 
-    let privateKeyRaw = process.env.GOOGLE_PRIVATE_KEY || '';
-    let privateKey = formatPrivateKey(privateKeyRaw);
+    let privateKey = formatPrivateKey(process.env.GOOGLE_PRIVATE_KEY || '');
 
     const credentials = {
         client_email: process.env.GOOGLE_CLIENT_EMAIL,
