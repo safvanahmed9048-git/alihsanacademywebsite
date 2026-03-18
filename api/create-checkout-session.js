@@ -12,9 +12,12 @@ export default async function handler(req, res) {
         
         let photoUrl = '';
         if (fullFormData && fullFormData.photoBase64) {
+             let privateKey = process.env.GOOGLE_PRIVATE_KEY || '';
+             privateKey = privateKey.replace(/\\n/g, '\n').replace(/"/g, '');
+
              const credentials = {
                  client_email: process.env.GOOGLE_CLIENT_EMAIL,
-                 private_key: (process.env.GOOGLE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+                 private_key: privateKey,
              };
              if (credentials.client_email && credentials.private_key) {
                  try {

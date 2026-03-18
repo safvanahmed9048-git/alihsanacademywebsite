@@ -20,9 +20,13 @@ export default async function handler(req, res) {
         }
 
         // 2. Setup Google Sheets to poll for the completed Admission Number created by the Webhook
+        let privateKey = process.env.GOOGLE_PRIVATE_KEY || '';
+        // Handle Vercel's potentially double-escaped or literal newlines
+        privateKey = privateKey.replace(/\\n/g, '\n').replace(/"/g, '');
+        
         const credentials = {
             client_email: process.env.GOOGLE_CLIENT_EMAIL || 'your-service-account-email',
-            private_key: (process.env.GOOGLE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+            private_key: privateKey,
         };
 
         const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
