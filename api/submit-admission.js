@@ -20,50 +20,54 @@ export default async function handler(req, res) {
         }
 
         // 2. Setup Google Sheets to poll for the completed Admission Number created by the Webhook
-        function formatPrivateKey(key) {
-            if (!key) return '';
-            // Remove any surrounding quotes and whitespace
-            let cleaned = key.replace(/['"]/g, '').trim();
-            // Convert literal \n strings to actual newlines
-            cleaned = cleaned.replace(/\\n/g, '\n');
+        function robustFormatKey(key) {
+            if (!key) return null;
             
-            // Extract the core base64 content if headers exist
-            const begin = '-----BEGIN PRIVATE KEY-----';
-            const end = '-----END PRIVATE KEY-----';
+            // Handle cases where the whole JSON was pasted instead of just the key
+            if (key.trim().startsWith('{')) {
+                try {
+                    const parsed = JSON.parse(key);
+                    if (parsed.private_key) return robustFormatKey(parsed.private_key);
+                } catch (e) {}
+            }
+
+            // Clean up surrounding quotes, spaces, and escaped newlines
+            let cleaned = key.trim().replace(/^['"]|['"]$/g, '').replace(/\\n/g, '\n');
             
-            if (cleaned.includes(begin) && cleaned.includes(end)) {
-                const base64Content = cleaned.split(begin)[1].split(end)[0].replace(/\s/g, '');
-                // Correctly wrap it back into 64-character lines
-                const lines = base64Content.match(/.{1,64}/g) || [base64Content];
-                return `${begin}\n${lines.join('\n')}\n${end}`;
+            // Standardize headers
+            const beginMarker = '-----BEGIN PRIVATE KEY-----';
+            const endMarker = '-----END PRIVATE KEY-----';
+            
+            // Extract core base64 content
+            let base64 = cleaned;
+            if (cleaned.includes('BEGIN') && cleaned.includes('END')) {
+                base64 = cleaned.split(/-----BEGIN[^-]+-----/)[1].split(/-----END[^-]+-----/)[0];
             }
             
-            // If it's just raw base64 without headers, add them
-            if (!cleaned.includes('-----BEGIN')) {
-                const base64 = cleaned.replace(/\s/g, '');
-                const lines = base64.match(/.{1,64}/g) || [base64];
-                return `${begin}\n${lines.join('\n')}\n${end}`;
-            }
+            base64 = base64.replace(/\s/g, ''); // Remove all whitespace
             
-            return cleaned;
+            if (!base64) return null;
+
+            // Reconstruct perfect PEM
+            const lines = base64.match(/.{1,64}/g) || [];
+            return `${beginMarker}\n${lines.join('\n')}\n${endMarker}`;
         }
 
-        let privateKey = formatPrivateKey(process.env.GOOGLE_PRIVATE_KEY || '');
-        
-        const credentials = {
-            client_email: process.env.GOOGLE_CLIENT_EMAIL,
-            private_key: privateKey,
-        };
+        const privateKey = robustFormatKey(process.env.GOOGLE_PRIVATE_KEY);
+        const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
+        const SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID;
+
+        if (!SPREADSHEET_ID || !privateKey || !clientEmail) {
+             const missing = [];
+             if (!SPREADSHEET_ID) missing.push("SPREADSHEET_ID");
+             if (!privateKey) missing.push("PRIVATE_KEY");
+             if (!clientEmail) missing.push("CLIENT_EMAIL");
+             return res.status(500).json({ error: `System configuration error: Missing ${missing.join(', ')}` });
+        }
 
         const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
-        const auth = new google.auth.GoogleAuth({ credentials, scopes: SCOPES });
+        const auth = new google.auth.JWT(clientEmail, null, privateKey, SCOPES);
         const sheets = google.sheets({ version: 'v4', auth });
-        const SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID; 
-
-        if (!SPREADSHEET_ID || !credentials.private_key || !credentials.client_email) {
-             return res.status(500).json({ error: "System configuration error." });
-        }
-
         const RANGE = 'Admissions!A:N';
 
         // Fetch existing records to check if the Webhook has processed the Session ID yet

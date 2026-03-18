@@ -12,42 +12,37 @@ export default async function handler(req, res) {
         
         let photoUrl = '';
         if (fullFormData && fullFormData.photoBase64) {
-             function formatPrivateKey(key) {
-                 if (!key) return '';
-                 let cleaned = key.replace(/['"]/g, '').trim();
-                 cleaned = cleaned.replace(/\\n/g, '\n');
-                 
-                 const begin = '-----BEGIN PRIVATE KEY-----';
-                 const end = '-----END PRIVATE KEY-----';
-                 
-                 if (cleaned.includes(begin) && cleaned.includes(end)) {
-                     const base64Content = cleaned.split(begin)[1].split(end)[0].replace(/\s/g, '');
-                     const lines = base64Content.match(/.{1,64}/g) || [base64Content];
-                     return `${begin}\n${lines.join('\n')}\n${end}`;
+             function robustFormatKey(key) {
+                 if (!key) return null;
+                 if (key.trim().startsWith('{')) {
+                     try {
+                         const parsed = JSON.parse(key);
+                         if (parsed.private_key) return robustFormatKey(parsed.private_key);
+                     } catch (e) {}
                  }
-                 
-                 if (!cleaned.includes('-----BEGIN')) {
-                     const base64 = cleaned.replace(/\s/g, '');
-                     const lines = base64.match(/.{1,64}/g) || [base64];
-                     return `${begin}\n${lines.join('\n')}\n${end}`;
+                 let cleaned = key.trim().replace(/^['"]|['"]$/g, '').replace(/\\n/g, '\n');
+                 const beginMarker = '-----BEGIN PRIVATE KEY-----';
+                 const endMarker = '-----END PRIVATE KEY-----';
+                 let base64 = cleaned;
+                 if (cleaned.includes('BEGIN') && cleaned.includes('END')) {
+                     base64 = cleaned.split(/-----BEGIN[^-]+-----/)[1].split(/-----END[^-]+-----/)[0];
                  }
-                 
-                 return cleaned;
+                 base64 = base64.replace(/\s/g, '');
+                 if (!base64) return null;
+                 const lines = base64.match(/.{1,64}/g) || [];
+                 return `${beginMarker}\n${lines.join('\n')}\n${endMarker}`;
              }
              
-             let privateKey = formatPrivateKey(process.env.GOOGLE_PRIVATE_KEY || '');
+             const privateKey = robustFormatKey(process.env.GOOGLE_PRIVATE_KEY);
+             const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
+             const DRIVE_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID;
 
-             const credentials = {
-                 client_email: process.env.GOOGLE_CLIENT_EMAIL,
-                 private_key: privateKey,
-             };
-             if (credentials.client_email && credentials.private_key) {
+             if (privateKey && clientEmail && DRIVE_FOLDER_ID) {
                  try {
                      const SCOPES = ['https://www.googleapis.com/auth/drive.file'];
-                     const auth = new google.auth.GoogleAuth({ credentials, scopes: SCOPES });
+                     const auth = new google.auth.JWT(clientEmail, null, privateKey, SCOPES);
                      const drive = google.drive({ version: 'v3', auth });
-                     const DRIVE_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID;
-
+                     
                      if (DRIVE_FOLDER_ID) {
                          const base64Data = fullFormData.photoBase64.replace(/^data:image\/\w+;base64,/, "");
                          const bufferStream = new Readable();
