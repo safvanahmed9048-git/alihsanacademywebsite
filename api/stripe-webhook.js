@@ -41,28 +41,17 @@ export default async function handler(req, res) {
     // Handle the checkout.session.completed event
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
-        
-        // This metadata must have been passed during session creation
-        const rawMetadata = session.metadata || {};
-        const formData = rawMetadata.formData ? JSON.parse(rawMetadata.formData) : null;
+        const formData = session.metadata;
 
-        if (!formData) {
-             console.error("No form data attached to session metadata.");
-             return res.status(200).end(); // Acknowledge to Stripe, but we can't process
-        }
-
-        try {
-            const admissionNumber = await processGoogleSheetsAndDrive(session, formData);
-            if (admissionNumber) {
-                 await sendSuccessEmail(session, formData, admissionNumber);
+        if (formData && formData.studentName) {
+            try {
+                const num = await processGoogleSheetsAndDrive(session, formData);
+                if (num) await sendSuccessEmail(session, formData, num);
+            } catch (err) {
+                console.error("Webhook processing error:", err.message);
             }
-        } catch (e) {
-            console.error("Error processing admission in webhook:", e);
-            // We still return 200 so Stripe doesn't retry infinitely if there's a permanent logical error on our end,
-            // but in a real-world scenario you might want a more sophisticated dead-letter queue.
         }
     }
-
     res.status(200).end();
 }
 
@@ -117,41 +106,7 @@ async function processGoogleSheetsAndDrive(session, formData) {
     const nextCountStr = nextCount.toString().padStart(3, '0');
     const admissionNumber = `${currentYear}${nextCountStr}`;
 
-    // 2. Upload Photo to Google Drive
-    let photoUrl = '';
-    if (formData.photoBase64 && DRIVE_FOLDER_ID) {
-        try {
-            const base64Data = formData.photoBase64.replace(/^data:image\/\w+;base64,/, "");
-            const bufferStream = new Readable();
-            bufferStream.push(Buffer.from(base64Data, 'base64'));
-            bufferStream.push(null);
-
-            const fileMetadata = {
-                name: `Student_${admissionNumber}.jpg`,
-                parents: [DRIVE_FOLDER_ID],
-            };
-            const media = {
-                mimeType: 'image/jpeg',
-                body: bufferStream,
-            };
-
-            const driveResp = await drive.files.create({
-                resource: fileMetadata,
-                media: media,
-                fields: 'id, webViewLink, webContentLink',
-            });
-            photoUrl = driveResp.data.webViewLink;
-            
-            // Make file publicly readable
-            await drive.permissions.create({
-                fileId: driveResp.data.id,
-                requestBody: { role: 'reader', type: 'anyone' },
-            });
-        } catch(err) {
-            console.error("Drive upload error", err);
-        }
-    }
-
+    const photoUrl = formData.photoUrl || '';
     const admissionDate = new Date().toISOString();
 
     // 3. Append Data to Sheets

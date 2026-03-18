@@ -1,4 +1,6 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { google } = require('googleapis');
+const { Readable } = require('stream');
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -6,16 +8,62 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { studentName, className, recaptchaToken } = req.body;
+        const { studentName, className, fullFormData } = req.body;
         
-        // reCAPTCHA disabled per user request
+        let photoUrl = '';
+        if (fullFormData && fullFormData.photoBase64) {
+             const credentials = {
+                 client_email: process.env.GOOGLE_CLIENT_EMAIL,
+                 private_key: (process.env.GOOGLE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+             };
+             if (credentials.client_email && credentials.private_key) {
+                 try {
+                     const SCOPES = ['https://www.googleapis.com/auth/drive.file'];
+                     const auth = new google.auth.GoogleAuth({ credentials, scopes: SCOPES });
+                     const drive = google.drive({ version: 'v3', auth });
+                     const DRIVE_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID;
+
+                     if (DRIVE_FOLDER_ID) {
+                         const base64Data = fullFormData.photoBase64.replace(/^data:image\/\w+;base64,/, "");
+                         const bufferStream = new Readable();
+                         bufferStream.push(Buffer.from(base64Data, 'base64'));
+                         bufferStream.push(null);
+
+                         const tempId = Date.now().toString() + '_' + Math.random().toString(36).substr(2, 5);
+
+                         const fileMetadata = {
+                             name: `Student_Pending_${tempId}.jpg`,
+                             parents: [DRIVE_FOLDER_ID],
+                         };
+                         const media = {
+                             mimeType: 'image/jpeg',
+                             body: bufferStream,
+                         };
+
+                         const driveResp = await drive.files.create({
+                             resource: fileMetadata,
+                             media: media,
+                             fields: 'id, webViewLink',
+                         });
+                         photoUrl = driveResp.data.webViewLink;
+                         
+                         await drive.permissions.create({
+                             fileId: driveResp.data.id,
+                             requestBody: { role: 'reader', type: 'anyone' },
+                         });
+                     }
+                 } catch (driveErr) {
+                     console.error("Google Drive upload error:", driveErr);
+                 }
+             }
+        }
 
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: [
                 {
                     price_data: {
-                        currency: 'gbp', // Change as per location
+                        currency: 'gbp',
                         product_data: {
                             name: `Admission Fee - ${studentName}`,
                             description: `Admission to ${className}`,
@@ -27,15 +75,17 @@ export default async function handler(req, res) {
             ],
             mode: 'payment',
             metadata: {
-                // Stripe limits metadata values to 500 characters, so we only pass the essentials.
-                // We'll pass the full formData so the webhook can process it, but note that 
-                // large photoBase64 fields can't go in metadata directly without truncation.
-                // We need to omit the photoBase64 from metadata due to the 500 character limit.
-                // A better approach is storing formData temporarily in a database/KV store keyed by a random ID,
-                // but for this small change, we'll store everything except the photo.
-                formData: JSON.stringify(Object.fromEntries(
-                    Object.entries(req.body.fullFormData || {}).filter(([key]) => key !== 'photoBase64')
-                ))
+                studentName: fullFormData?.studentName?.substring(0, 500) || '',
+                gender: fullFormData?.gender?.substring(0, 500) || '',
+                dob: fullFormData?.dob?.substring(0, 500) || '',
+                guardianName: fullFormData?.guardianName?.substring(0, 500) || '',
+                email: fullFormData?.email?.substring(0, 500) || '',
+                address: fullFormData?.address?.substring(0, 500) || '',
+                whatsapp: fullFormData?.whatsapp?.substring(0, 500) || '',
+                classAdmitted: fullFormData?.classAdmitted?.substring(0, 500) || '',
+                classType: fullFormData?.classType?.substring(0, 500) || '',
+                doj: fullFormData?.doj?.substring(0, 500) || '',
+                photoUrl: photoUrl?.substring(0, 500) || ''
             },
             success_url: req.headers.origin 
                 ? `${req.headers.origin}/admission.html?session_id={CHECKOUT_SESSION_ID}&status=success`

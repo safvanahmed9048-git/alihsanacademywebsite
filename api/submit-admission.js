@@ -72,11 +72,11 @@ export default async function handler(req, res) {
 
         } catch(err) {
              console.error("Sheet read error:", err.message);
-             return res.status(500).json({ error: "Database unavailable." });
+             return res.status(500).json({ error: `Database read error: ${err.message}` });
         }
 
     } catch (err) {
-        console.error("Submit Admission Error:", err);
+        console.error("Submit Admission Error:", err.message); // Updated to include err.message
         res.status(500).json({ error: err.message });
     }
 }
