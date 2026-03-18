@@ -56,8 +56,22 @@ export default async function handler(req, res) {
 }
 
 async function processGoogleSheetsAndDrive(session, formData) {
-    let privateKey = process.env.GOOGLE_PRIVATE_KEY || '';
-    privateKey = privateKey.replace(/\\n/g, '\n').replace(/"/g, '');
+    function formatPrivateKey(keyString) {
+        if (!keyString) return '';
+        let key = keyString.replace(/\\n/g, '\n').replace(/"/g, '').trim();
+        const beginMatch = key.match(/-----BEGIN [\w\s]+-----/);
+        const endMatch = key.match(/-----END [\w\s]+-----/);
+        if (beginMatch && endMatch) {
+            let base64Part = key.substring(beginMatch.index + beginMatch[0].length, endMatch.index);
+            base64Part = base64Part.replace(/\s+/g, '');
+            const wrappedBase64 = base64Part.match(/.{1,64}/g)?.join('\n') || base64Part;
+            return `${beginMatch[0]}\n${wrappedBase64}\n${endMatch[0]}`;
+        }
+        return key;
+    }
+
+    let privateKeyRaw = process.env.GOOGLE_PRIVATE_KEY || '';
+    let privateKey = formatPrivateKey(privateKeyRaw);
 
     const credentials = {
         client_email: process.env.GOOGLE_CLIENT_EMAIL,
