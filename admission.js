@@ -222,7 +222,8 @@ async function handleSuccessRedirect(sessionId) {
 // 2. Setup Form & Photo Upload (keeps existing structure)
 // We merge verifyPaymentOnly into the polling function to streamline
 async function pollForAdmissionSuccess(sessionId, attemptCount) {
-    const maxAttempts = 30; // ~60 seconds max wait
+    // Fresh Deployment: 2026-03-18 14:28:45
+    const maxAttempts = 60; // 120 seconds wait max
     
     try {
         const response = await fetch('/api/submit-admission', {
