@@ -66,8 +66,15 @@ export default async function handler(req, res) {
         }
 
         const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
-        const auth = new google.auth.JWT(clientEmail, null, privateKey, SCOPES);
-        const sheets = google.sheets({ version: 'v4', auth });
+        const auth = new google.auth.GoogleAuth({
+            credentials: {
+                client_email: clientEmail,
+                private_key: privateKey,
+            },
+            scopes: SCOPES,
+        });
+        const authClient = await auth.getClient();
+        const sheets = google.sheets({ version: 'v4', auth: authClient });
         const RANGE = 'Admissions!A:N';
 
         // Fetch existing records to check if the Webhook has processed the Session ID yet
