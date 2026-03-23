@@ -66,14 +66,15 @@ export default async function handler(req, res) {
         }
 
         const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
-        const auth = new google.auth.GoogleAuth({
-            credentials: {
-                client_email: clientEmail,
-                private_key: privateKey,
-            },
-            scopes: SCOPES,
-        });
-        const authClient = await auth.getClient();
+        
+        // Switch to explicit JWT for Service Account
+        const authClient = new google.auth.JWT(
+            clientEmail,
+            null,
+            privateKey,
+            SCOPES
+        );
+
         const sheets = google.sheets({ version: 'v4', auth: authClient });
         const RANGE = 'Admissions!A:N';
 
@@ -86,7 +87,8 @@ export default async function handler(req, res) {
              if (rows.length > 1) { // Skip Header
                  for (let i = 1; i < rows.length; i++) {
                      const row = rows[i];
-                     if (row[12] === sessionId) {
+                     // Use trim() for robust comparison
+                     if (row[12] && row[12].trim() === sessionId.trim()) {
                          foundRecord = row;
                          break;
                      }

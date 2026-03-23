@@ -80,39 +80,46 @@ async function processGoogleSheetsAndDrive(session, formData) {
     const privateKey = robustFormatKey(process.env.GOOGLE_PRIVATE_KEY);
     const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
     const SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID;
-    const DRIVE_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID;
 
-    if (!SPREADSHEET_ID || !privateKey || !clientEmail) return null;
+    if (!SPREADSHEET_ID || !privateKey || !clientEmail) {
+        console.error("Webhook Error: Missing Google Configuration", { 
+            hasSpreadsheetId: !!SPREADSHEET_ID, 
+            hasPrivateKey: !!privateKey, 
+            hasClientEmail: !!clientEmail 
+        });
+        return null;
+    }
 
     const SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive.file'];
-    const auth = new google.auth.GoogleAuth({
-        credentials: {
-            client_email: clientEmail,
-            private_key: privateKey,
-        },
-        scopes: SCOPES,
-    });
     
-    const authClient = await auth.getClient();
-    const sheets = google.sheets({ version: 'v4', auth: authClient });
-    const drive = google.drive({ version: 'v3', auth: authClient });
+    // Switch to explicit JWT for Service Account
+    const authClient = new google.auth.JWT(
+        clientEmail,
+        null,
+        privateKey,
+        SCOPES
+    );
 
+    const sheets = google.sheets({ version: 'v4', auth: authClient });
     const RANGE = 'Admissions!A:N';
 
-    // 1. Fetch existing records to check for duplicates and generate Admission Number
+    console.log(`Processing admission for Session: ${session.id}`);
+
+    // 1. Fetch existing records
     let currentYear = new Date().getFullYear().toString().slice(-2);
     let nextCount = 1;
 
     try {
          const response = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: RANGE });
          const rows = response.data.values || [];
+         console.log(`Fetched ${rows.length} rows from sheet.`);
 
          if (rows.length > 1) { // Skip Header
              for (let i = 1; i < rows.length; i++) {
                  const row = rows[i];
-                 if (row[12] === session.id) {
-                     // Payment ID matches, duplicate found (idempotency check)
-                     return row[0]; // Return the existing admission number
+                 if (row[12] && row[12].trim() === session.id.trim()) {
+                     console.log(`Duplicate session found at row ${i+1}. Returning existing admission number: ${row[0]}`);
+                     return row[0];
                  }
                  const adNum = row[0];
                  if (adNum && adNum.startsWith(currentYear)) {
@@ -124,17 +131,14 @@ async function processGoogleSheetsAndDrive(session, formData) {
              }
          }
     } catch(err) {
-         console.error("Sheet read error:", err.message);
-         // If sheet is just empty, we continue
+         console.error("Webhook Sheet Read Error:", err.message);
     }
 
     const nextCountStr = nextCount.toString().padStart(3, '0');
     const admissionNumber = `${currentYear}${nextCountStr}`;
-
     const photoUrl = formData.photoUrl || '';
     const admissionDate = new Date().toISOString();
 
-    // 3. Append Data to Sheets
     const rowData = [
         admissionNumber,
         formData.studentName,
@@ -152,12 +156,19 @@ async function processGoogleSheetsAndDrive(session, formData) {
         admissionDate
     ];
 
-    await sheets.spreadsheets.values.append({
-        spreadsheetId: SPREADSHEET_ID,
-        range: RANGE,
-        valueInputOption: 'USER_ENTERED',
-        requestBody: { values: [rowData] },
-    });
+    try {
+        console.log(`Attempting to append row for ${admissionNumber}...`);
+        await sheets.spreadsheets.values.append({
+            spreadsheetId: SPREADSHEET_ID,
+            range: RANGE,
+            valueInputOption: 'USER_ENTERED',
+            requestBody: { values: [rowData] },
+        });
+        console.log(`Successfully appended row for ${admissionNumber}.`);
+    } catch (err) {
+        console.error("Webhook Sheet Append Error:", err.message);
+        throw err; // Re-throw to be caught in the main handler's try-catch
+    }
 
     return admissionNumber;
 }
