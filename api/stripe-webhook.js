@@ -27,32 +27,66 @@ export default async function handler(req, res) {
         return res.status(405).send('Method Not Allowed');
     }
 
-    const buf = await buffer(req);
-    const sig = req.headers['stripe-signature'];
-    let event;
+    console.log("--- Webhook Triggered ---");
+    let buf;
+    try {
+        buf = await buffer(req);
+        console.log(`Raw body buffered. Length: ${buf.length}`);
+    } catch (bufErr) {
+        console.error("Buffer error:", bufErr.message);
+        return res.status(400).send("Buffer Error");
+    }
 
+    const sig = req.headers['stripe-signature'];
+    console.log(`Signature header present: ${!!sig}`);
+
+    if (!endpointSecret) {
+        console.error("Webhook Secret is MISSING from environment variables!");
+    }
+
+    let event;
     try {
         event = stripe.webhooks.constructEvent(buf, sig, endpointSecret);
+        console.log(`Event verified: ${event.id} [${event.type}]`);
     } catch (err) {
-        console.error(`Webhook Error: ${err.message}`);
+        console.error(`Webhook Signature Verification Failed: ${err.message}`);
+        // Log a hint about the secret (first/last characters)
+        if (endpointSecret) {
+            console.log(`Secret Hint: ${endpointSecret.slice(0, 5)}...${endpointSecret.slice(-5)}`);
+        }
         return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
-    // Handle the checkout.session.completed event
-    if (event.type === 'checkout.session.completed') {
+    // Handle both completed and async succeeded
+    if (event.type === 'checkout.session.completed' || event.type === 'checkout.session.async_payment_succeeded') {
         const session = event.data.object;
         const formData = session.metadata;
+
+        console.log(`Processing Session: ${session.id} | Mode: ${session.livemode ? 'LIVE' : 'TEST'}`);
+        console.log(`Metadata received: ${!!formData} | Student Name: ${formData?.studentName || 'MISSING'}`);
 
         if (formData && formData.studentName) {
             try {
                 const num = await processGoogleSheetsAndDrive(session, formData);
-                if (num) await sendSuccessEmail(session, formData, num);
+                if (num) {
+                    console.log(`Admission Number Generated: ${num}`);
+                    await sendSuccessEmail(session, formData, num);
+                } else {
+                    console.error("processGoogleSheetsAndDrive returned null");
+                }
             } catch (err) {
-                console.error("Webhook processing error:", err.message);
+                console.error("Webhook Business Logic Error:", err.message);
+                // We return 500 here so Stripe retries
+                return res.status(500).send(`Processing Error: ${err.message}`);
             }
+        } else {
+            console.warn("Webhook skipped: Missing metadata or studentName in session object.");
         }
+    } else {
+        console.log(`Skipping unhandled event type: ${event.type}`);
     }
-    res.status(200).end();
+
+    res.status(200).send({ received: true });
 }
 
 async function processGoogleSheetsAndDrive(session, formData) {
