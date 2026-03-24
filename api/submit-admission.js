@@ -1,4 +1,5 @@
 const { google } = require('googleapis');
+// Force Redeploy: 2026-03-24 08:50:00
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 export default async function handler(req, res) {
