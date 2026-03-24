@@ -67,17 +67,27 @@ export default async function handler(req, res) {
         }
 
         const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
-        
-        // Switch to explicit JWT for Service Account
-        const authClient = new google.auth.JWT(
-            clientEmail,
-            null,
-            privateKey,
-            SCOPES
-        );
 
+        // Add obfuscated logging for diagnostics
+        console.log("Auth Diagnostics:", {
+            hasSpreadsheetId: !!SPREADSHEET_ID,
+            spreadsheetIdEnd: SPREADSHEET_ID ? SPREADSHEET_ID.slice(-5) : "null",
+            hasPrivateKey: !!privateKey,
+            privateKeyStart: privateKey ? privateKey.slice(0, 30) : "null",
+            hasClientEmail: !!clientEmail,
+            clientEmail: clientEmail ? `${clientEmail.slice(0, 5)}...${clientEmail.slice(-10)}` : "null"
+        });
+
+        const auth = new google.auth.GoogleAuth({
+            credentials: {
+                client_email: clientEmail,
+                private_key: privateKey,
+            },
+            scopes: SCOPES,
+        });
+
+        const authClient = await auth.getClient();
         const sheets = google.sheets({ version: 'v4', auth: authClient });
-        const RANGE = 'Admissions!A:N';
 
         // Fetch existing records to check if the Webhook has processed the Session ID yet
         let foundRecord = null;

@@ -39,16 +39,18 @@ export default async function handler(req, res) {
 
              if (privateKey && clientEmail && DRIVE_FOLDER_ID) {
                  try {
-                     const SCOPES = ['https://www.googleapis.com/auth/drive.file'];
-                     
-                     const authClient = new google.auth.JWT(
-                         clientEmail,
-                         null,
-                         privateKey,
-                         SCOPES
-                     );
-                     
-                     const drive = google.drive({ version: 'v3', auth: authClient });
+                      const SCOPES = ['https://www.googleapis.com/auth/drive.file'];
+                      
+                      const auth = new google.auth.GoogleAuth({
+                          credentials: {
+                              client_email: clientEmail,
+                              private_key: privateKey,
+                          },
+                          scopes: SCOPES,
+                      });
+                      
+                      const authClient = await auth.getClient();
+                      const drive = google.drive({ version: 'v3', auth: authClient });
                      
                      if (DRIVE_FOLDER_ID) {
                          const base64Data = fullFormData.photoBase64.replace(/^data:image\/\w+;base64,/, "");

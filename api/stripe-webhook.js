@@ -92,18 +92,25 @@ async function processGoogleSheetsAndDrive(session, formData) {
 
     const SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive.file'];
     
-    // Switch to explicit JWT for Service Account
-    const authClient = new google.auth.JWT(
-        clientEmail,
-        null,
-        privateKey,
-        SCOPES
-    );
+    // Switch back to GoogleAuth for better reliability
+    const auth = new google.auth.GoogleAuth({
+        credentials: {
+            client_email: clientEmail,
+            private_key: privateKey,
+        },
+        scopes: SCOPES,
+    });
 
+    const authClient = await auth.getClient();
     const sheets = google.sheets({ version: 'v4', auth: authClient });
     const RANGE = 'Admissions!A:N';
 
-    console.log(`Processing admission for Session: ${session.id}`);
+    console.log(`Processing admission for Session: ${session.id}`, {
+        hasSpreadsheetId: !!SPREADSHEET_ID,
+        hasPrivateKey: !!privateKey,
+        privateKeyStart: privateKey ? privateKey.slice(0, 30) : "null",
+        hasClientEmail: !!clientEmail
+    });
 
     // 1. Fetch existing records
     let currentYear = new Date().getFullYear().toString().slice(-2);
