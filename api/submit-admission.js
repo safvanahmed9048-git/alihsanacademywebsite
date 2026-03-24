@@ -88,6 +88,7 @@ export default async function handler(req, res) {
 
         const authClient = await auth.getClient();
         const sheets = google.sheets({ version: 'v4', auth: authClient });
+        const RANGE = 'Admissions!A:N';
 
         // Fetch existing records to check if the Webhook has processed the Session ID yet
         let foundRecord = null;
