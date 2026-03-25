@@ -1,7 +1,18 @@
 const { google } = require('googleapis');
+const fs = require('fs');
+const path = require('path');
 
 export default async function handler(req, res) {
     // Allowed both GET and POST for easier debugging
+    
+    // Check runtime file system
+    let apiFiles = "Not Found";
+    try {
+        const apiPath = path.join(process.cwd(), 'api');
+        apiFiles = fs.readdirSync(apiPath);
+    } catch (fsErr) {
+        apiFiles = `Error reading api dir: ${fsErr.message}`;
+    }
 
     function robustFormatKey(key) {
         if (!key) return null;
@@ -74,6 +85,7 @@ export default async function handler(req, res) {
         res.status(200).json({
             timestamp: new Date().toISOString(),
             auth: "Healthy",
+            apiFiles,
             sheetTest
         });
 
