@@ -1,3 +1,4 @@
+// Deploy: 2026-03-25T11:05:00Z
 const { google } = require('googleapis');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { Readable } = require('stream');

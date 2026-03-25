@@ -1,3 +1,4 @@
+// Deploy: 2026-03-25T11:05:00Z
 const { google } = require('googleapis');
 // Force Redeploy: 2026-03-24 08:50:00
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);

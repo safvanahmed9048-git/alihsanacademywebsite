@@ -1,77 +1,85 @@
 const { google } = require('googleapis');
 
 export default async function handler(req, res) {
-    // Only allow GET for easier manual testing in browser
-    if (req.method !== 'GET') {
+    if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    const results = {
-        timestamp: new Date().toISOString(),
-        env: {
-            NODE_ENV: process.env.NODE_ENV,
-            hasSpreadsheetId: !!process.env.GOOGLE_SPREADSHEET_ID,
-            spreadsheetIdEnd: process.env.GOOGLE_SPREADSHEET_ID ? process.env.GOOGLE_SPREADSHEET_ID.slice(-5) : "MISSING",
-            hasPrivateKey: !!process.env.GOOGLE_PRIVATE_KEY,
-            privateKeyLength: process.env.GOOGLE_PRIVATE_KEY ? process.env.GOOGLE_PRIVATE_KEY.length : 0,
-            hasClientEmail: !!process.env.GOOGLE_CLIENT_EMAIL,
-            clientEmailMasked: process.env.GOOGLE_CLIENT_EMAIL ? `${process.env.GOOGLE_CLIENT_EMAIL.slice(0, 5)}...${process.env.GOOGLE_CLIENT_EMAIL.slice(-10)}` : "MISSING",
-        },
-        authTest: {}
-    };
-
-    try {
-        // Robust Key Formatting (copied from handlers)
-        function robustFormatKey(key) {
-            if (!key) return null;
-            if (key.trim().startsWith('{')) {
-                try {
-                    const parsed = JSON.parse(key);
-                    if (parsed.private_key) return robustFormatKey(parsed.private_key);
-                } catch (e) {}
-            }
-            let cleaned = key.trim().replace(/^['"]|['"]$/g, '').replace(/\\n/g, '\n');
-            const beginMarker = '-----BEGIN PRIVATE KEY-----';
-            const endMarker = '-----END PRIVATE KEY-----';
-            let base64 = cleaned;
-            if (cleaned.includes('BEGIN') && cleaned.includes('END')) {
-                base64 = cleaned.split(/-----BEGIN[^-]+-----/)[1].split(/-----END[^-]+-----/)[0];
-            }
-            base64 = base64.replace(/\s/g, '');
-            if (!base64) return null;
-            const lines = base64.match(/.{1,64}/g) || [];
-            return `${beginMarker}\n${lines.join('\n')}\n${endMarker}`;
+    function robustFormatKey(key) {
+        if (!key) return null;
+        if (key.trim().startsWith('{')) {
+            try {
+                const parsed = JSON.parse(key);
+                if (parsed.private_key) return robustFormatKey(parsed.private_key);
+            } catch (e) {}
         }
-
-        const privateKey = robustFormatKey(process.env.GOOGLE_PRIVATE_KEY);
-        results.env.formattedKeyLength = privateKey ? privateKey.length : 0;
-        results.env.formattedKeyFirst30 = privateKey ? privateKey.slice(0, 30) : "MISSING";
-
-        if (privateKey && process.env.GOOGLE_CLIENT_EMAIL) {
-            const auth = new google.auth.GoogleAuth({
-                credentials: {
-                    client_email: process.env.GOOGLE_CLIENT_EMAIL,
-                    private_key: privateKey,
-                },
-                scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
-            });
-
-            const client = await auth.getClient();
-            results.authTest.clientType = client.constructor.name;
-            
-            // Try to get an access token to verify identity
-            const token = await client.getAccessToken();
-            results.authTest.tokenSuccess = !!token.token;
-            results.authTest.tokenType = typeof token.token;
-            results.authTest.identityVerified = true;
-        } else {
-            results.authTest.error = "Missing credentials for auth test";
+        let cleaned = key.trim().replace(/^['"]|['"]$/g, '').replace(/\\n/g, '\n');
+        const beginMarker = '-----BEGIN PRIVATE KEY-----';
+        const endMarker = '-----END PRIVATE KEY-----';
+        let base64 = cleaned;
+        if (cleaned.includes('BEGIN') && cleaned.includes('END')) {
+            base64 = cleaned.split(/-----BEGIN[^-]+-----/)[1].split(/-----END[^-]+-----/)[0];
         }
-
-    } catch (err) {
-        results.authTest.error = err.message;
-        results.authTest.stack = err.stack?.split('\n').slice(0, 3).join('\n');
+        base64 = base64.replace(/\s/g, '');
+        if (!base64) return null;
+        const lines = base64.match(/.{1,64}/g) || [];
+        return `${beginMarker}\n${lines.join('\n')}\n${endMarker}`;
     }
 
-    res.status(200).json(results);
+    const SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID;
+    const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
+    const privateKey = robustFormatKey(process.env.GOOGLE_PRIVATE_KEY);
+
+    try {
+        if (!SPREADSHEET_ID || !privateKey || !clientEmail) {
+            return res.status(200).json({
+                error: "Missing Configuration",
+                hasSpreadsheetId: !!SPREADSHEET_ID,
+                hasPrivateKey: !!privateKey,
+                hasClientEmail: !!clientEmail
+            });
+        }
+
+        const auth = new google.auth.GoogleAuth({
+            credentials: {
+                client_email: clientEmail,
+                private_key: privateKey,
+            },
+            scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+        });
+
+        const authClient = await auth.getClient();
+        const sheets = google.sheets({ version: 'v4', auth: authClient });
+        
+        const RANGE = 'Admissions!A:N';
+        let sheetTest = {};
+        
+        try {
+            const response = await sheets.spreadsheets.values.get({ 
+                spreadsheetId: SPREADSHEET_ID, 
+                range: RANGE 
+            });
+            sheetTest = {
+                status: "Success",
+                rowCount: (response.data.values || []).length,
+                range: RANGE,
+                header: response.data.values && response.data.values[0] ? response.data.values[0] : "Empty"
+            };
+        } catch (err) {
+            sheetTest = {
+                status: "Error",
+                message: err.message,
+                hint: err.message.includes("404") ? "Sheet 'Admissions' not found. Is the name correct?" : "Check permissions."
+            };
+        }
+
+        res.status(200).json({
+            timestamp: new Date().toISOString(),
+            auth: "Healthy",
+            sheetTest
+        });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 }
