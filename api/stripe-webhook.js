@@ -13,14 +13,18 @@ async function buffer(readable) {
 function robustFormatKey(key) {
     if (!key) return null;
     let cleaned = key.trim().replace(/^['"]|['"]$/g, '').replace(/\\n/g, '\n');
-    const beginMarker = '-----BEGIN PRIVATE KEY-----';
-    const endMarker = '-----END PRIVATE KEY-----';
     let base64 = cleaned;
     if (cleaned.includes('BEGIN') && cleaned.includes('END')) {
-        base64 = cleaned.split(/-----BEGIN[^-]+-----/)[1].split(/-----END[^-]+-----/)[0];
+        const parts = cleaned.split(/-----BEGIN[^-]+-----/);
+        if (parts.length > 1) {
+            const inner = parts[1].split(/-----END[^-]+-----/);
+            if (inner.length > 0) base64 = inner[0];
+        }
     }
     base64 = base64.replace(/\s/g, '');
     if (!base64) return null;
+    const beginMarker = '-----BEGIN PRIVATE KEY-----';
+    const endMarker = '-----END PRIVATE KEY-----';
     const lines = base64.match(/.{1,64}/g) || [];
     return `${beginMarker}\n${lines.join('\n')}\n${endMarker}`;
 }
@@ -36,15 +40,12 @@ module.exports = async function handler(req, res) {
     let buf;
     try {
         buf = await buffer(req);
-        console.log(`Raw body buffered. Length: ${buf.length}`);
     } catch (bufErr) {
         console.error("Buffer error:", bufErr.message);
         return res.status(400).send("Buffer Error");
     }
 
     const sig = req.headers['stripe-signature'];
-    console.log(`Signature header present: ${!!sig}`);
-
     if (!endpointSecret) {
         console.error("Webhook Secret is MISSING from environment variables!");
     }
@@ -55,8 +56,9 @@ module.exports = async function handler(req, res) {
         console.log(`Event verified: ${event.id} [${event.type}]`);
     } catch (err) {
         console.error(`Webhook Signature Verification Failed: ${err.message}`);
+        // Hint the secret length to help the user identify issues
         if (endpointSecret) {
-            console.log(`Secret Hint: ${endpointSecret.slice(0, 5)}...${endpointSecret.slice(-5)}`);
+             console.log(`Secret Hint: ${endpointSecret.slice(0, 5)}...${endpointSecret.slice(-5)}`);
         }
         return res.status(400).send(`Webhook Error: ${err.message}`);
     }
@@ -64,10 +66,9 @@ module.exports = async function handler(req, res) {
     if (event.type === 'checkout.session.completed' || event.type === 'checkout.session.async_payment_succeeded') {
         const session = event.data.object;
         const formData = session.metadata;
-        console.log(`Processing Session: ${session.id} | Mode: ${session.livemode ? 'LIVE' : 'TEST'}`);
 
-        if (!formData || Object.keys(formData).length === 0) {
-            console.error("CRITICAL: Webhook received NO metadata. Cannot process admission.");
+        if (!formData || !formData.studentName) {
+            console.error("CRITICAL: Webhook received NO metadata.");
             return res.status(200).json({ received: true, warning: "No metadata" });
         }
 
@@ -78,7 +79,7 @@ module.exports = async function handler(req, res) {
 
             const auth = new google.auth.GoogleAuth({
                 credentials: { client_email: clientEmail, private_key: privateKey },
-                scopes: ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive'],
+                scopes: ['https://www.googleapis.com/auth/spreadsheets'],
             });
 
             const authClient = await auth.getClient();
@@ -89,14 +90,11 @@ module.exports = async function handler(req, res) {
             const rows = response.data.values || [];
             let nextCount = 1;
             if (rows.length > 1) {
-                rows.forEach((row, index) => {
-                    if (index === 0) return;
-                    const id = row[0];
-                    if (id && id.length > 2) {
-                        const num = parseInt(id.slice(-3));
-                        if (!isNaN(num) && num >= nextCount) nextCount = num + 1;
-                    }
-                });
+                const lastRow = rows[rows.length - 1];
+                if (lastRow[0]) {
+                    const num = parseInt(lastRow[0].slice(-3));
+                    if (!isNaN(num)) nextCount = num + 1;
+                }
             }
 
             const currentYear = new Date().getFullYear().toString().slice(-2);
@@ -106,15 +104,15 @@ module.exports = async function handler(req, res) {
             const rowData = [
                 admissionNumber,
                 formData.studentName,
-                formData.gender,
-                formData.dob,
-                formData.guardianName,
-                formData.email,
-                formData.address,
-                formData.whatsapp,
-                formData.classAdmitted,
-                formData.classType,
-                formData.dateOfJoining,
+                formData.gender || '',
+                formData.dob || '',
+                formData.guardianName || '',
+                formData.email || '',
+                formData.address || '',
+                formData.whatsapp || '',
+                formData.classAdmitted || '',
+                formData.classType || '',
+                formData.dateOfJoining || '',
                 formData.photoUrl || '',
                 session.id,
                 admissionDate
@@ -127,10 +125,10 @@ module.exports = async function handler(req, res) {
                 requestBody: { values: [rowData] },
             });
 
-            console.log(`SUCCESS: Admission ${admissionNumber} recorded for session ${session.id}`);
+            console.log(`SUCCESS: Admission ${admissionNumber} recorded.`);
 
         } catch (sheetsErr) {
-            console.error("Google Sheets Error:", sheetsErr.message);
+            console.error("Internal Logic Error:", sheetsErr.message);
             return res.status(500).send("Database Error");
         }
     }

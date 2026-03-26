@@ -1,17 +1,20 @@
 const { google } = require('googleapis');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 function robustFormatKey(key) {
     if (!key) return null;
     let cleaned = key.trim().replace(/^['"]|['"]$/g, '').replace(/\\n/g, '\n');
-    const beginMarker = '-----BEGIN PRIVATE KEY-----';
-    const endMarker = '-----END PRIVATE KEY-----';
     let base64 = cleaned;
     if (cleaned.includes('BEGIN') && cleaned.includes('END')) {
-        base64 = cleaned.split(/-----BEGIN[^-]+-----/)[1].split(/-----END[^-]+-----/)[0];
+        const parts = cleaned.split(/-----BEGIN[^-]+-----/);
+        if (parts.length > 1) {
+            const inner = parts[1].split(/-----END[^-]+-----/);
+            if (inner.length > 0) base64 = inner[0];
+        }
     }
     base64 = base64.replace(/\s/g, '');
     if (!base64) return null;
+    const beginMarker = '-----BEGIN PRIVATE KEY-----';
+    const endMarker = '-----END PRIVATE KEY-----';
     const lines = base64.match(/.{1,64}/g) || [];
     return `${beginMarker}\n${lines.join('\n')}\n${endMarker}`;
 }
@@ -29,7 +32,8 @@ module.exports = async function handler(req, res) {
     try {
         const SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID;
         const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
-        const privateKey = robustFormatKey(process.env.GOOGLE_PRIVATE_KEY);
+        const privateKeyRaw = process.env.GOOGLE_PRIVATE_KEY;
+        const privateKey = robustFormatKey(privateKeyRaw);
 
         const auth = new google.auth.GoogleAuth({
             credentials: { client_email: clientEmail, private_key: privateKey },
@@ -56,6 +60,6 @@ module.exports = async function handler(req, res) {
 
     } catch (err) {
         console.error("Submit Admission Error:", err.message);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: err.message, details: err.message.includes('1E08010C') ? 'Internal decoder failure' : 'Database read error' });
     }
 };
