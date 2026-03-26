@@ -143,8 +143,7 @@ function setupFormSubmission() {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        // Custom validations (Disabled for automated test)
-        /*
+        // Custom validations
         const checkboxes = document.querySelectorAll('input[name="classType"]:checked');
         const checkboxError = document.getElementById('checkbox-error');
         
@@ -162,7 +161,6 @@ function setupFormSubmission() {
             fileError.classList.remove('hidden');
             return;
         }
-        */
 
         const generalError = document.getElementById('general-error');
         generalError.classList.add('hidden');
