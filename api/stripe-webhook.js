@@ -1,6 +1,5 @@
 const { google } = require('googleapis');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const { Readable } = require('stream');
 
 async function buffer(readable) {
   const chunks = [];
@@ -32,33 +31,26 @@ function robustFormatKey(key) {
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 module.exports = async function handler(req, res) {
-    if (req.method !== 'POST') {
-        return res.status(405).send('Method Not Allowed');
-    }
+    if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
 
     console.log("--- Webhook Triggered ---");
     let buf;
     try {
         buf = await buffer(req);
-    } catch (bufErr) {
-        console.error("Buffer error:", bufErr.message);
+    } catch (err) {
+        console.error("Buffer error:", err.message);
         return res.status(400).send("Buffer Error");
     }
 
     const sig = req.headers['stripe-signature'];
-    if (!endpointSecret) {
-        console.error("Webhook Secret is MISSING from environment variables!");
-    }
-
     let event;
     try {
         event = stripe.webhooks.constructEvent(buf, sig, endpointSecret);
         console.log(`Event verified: ${event.id} [${event.type}]`);
     } catch (err) {
         console.error(`Webhook Signature Verification Failed: ${err.message}`);
-        // Hint the secret length to help the user identify issues
         if (endpointSecret) {
-             console.log(`Secret Hint: ${endpointSecret.slice(0, 5)}...${endpointSecret.slice(-5)}`);
+            console.log(`Secret Hint: ${endpointSecret.slice(0, 5)}...${endpointSecret.slice(-5)}`);
         }
         return res.status(400).send(`Webhook Error: ${err.message}`);
     }
@@ -67,9 +59,14 @@ module.exports = async function handler(req, res) {
         const session = event.data.object;
         const formData = session.metadata;
 
+        console.log("Session Mapping Start:", session.id);
+        console.log("Raw Metadata Received:", JSON.stringify(formData));
+
         if (!formData || !formData.studentName) {
-            console.error("CRITICAL: Webhook received NO metadata.");
-            return res.status(200).json({ received: true, warning: "No metadata" });
+            console.error("CRITICAL: Webhook received NO studentName in metadata.");
+            // Log full session object for deep dive (masked)
+            console.log("Session Keys:", Object.keys(session));
+            return res.status(200).json({ received: true, error: "Metadata Missing" });
         }
 
         try {
@@ -77,6 +74,7 @@ module.exports = async function handler(req, res) {
             const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
             const privateKey = robustFormatKey(process.env.GOOGLE_PRIVATE_KEY);
 
+            console.log("Authenticating with Google:", clientEmail);
             const auth = new google.auth.GoogleAuth({
                 credentials: { client_email: clientEmail, private_key: privateKey },
                 scopes: ['https://www.googleapis.com/auth/spreadsheets'],
@@ -86,8 +84,13 @@ module.exports = async function handler(req, res) {
             const sheets = google.sheets({ version: 'v4', auth: authClient });
             const RANGE = 'Admissions!A:N';
 
-            const response = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: RANGE });
-            const rows = response.data.values || [];
+            console.log("Fetching existing rows from:", SPREADSHEET_ID);
+            const sheetData = await sheets.spreadsheets.values.get({ 
+                spreadsheetId: SPREADSHEET_ID, 
+                range: RANGE 
+            });
+            const rows = sheetData.data.values || [];
+            
             let nextCount = 1;
             if (rows.length > 1) {
                 const lastRow = rows[rows.length - 1];
@@ -118,6 +121,7 @@ module.exports = async function handler(req, res) {
                 admissionDate
             ];
 
+            console.log("Appending row:", admissionNumber);
             await sheets.spreadsheets.values.append({
                 spreadsheetId: SPREADSHEET_ID,
                 range: RANGE,
@@ -125,11 +129,12 @@ module.exports = async function handler(req, res) {
                 requestBody: { values: [rowData] },
             });
 
-            console.log(`SUCCESS: Admission ${admissionNumber} recorded.`);
+            console.log(`SUCCESS: Admission ${admissionNumber} recorded for ${formData.studentName}`);
 
         } catch (sheetsErr) {
-            console.error("Internal Logic Error:", sheetsErr.message);
-            return res.status(500).send("Database Error");
+            console.error("Internal Logic Error during Google write:", sheetsErr.message);
+            console.error(sheetsErr.stack);
+            return res.status(500).send("Database Write Error");
         }
     }
 
