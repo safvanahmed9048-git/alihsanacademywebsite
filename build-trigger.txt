@@ -1,0 +1,4 @@
+Build Triggered at 2026-03-27 15:21:00 UTC
+Final standardizing of all API handlers and private key formatting.
+Fixing the DECODER routines::unsupported error.
+Deployment health check: alihsanacademy.uk/api/debug-auth
