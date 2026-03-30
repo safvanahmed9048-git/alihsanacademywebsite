@@ -86,8 +86,8 @@ module.exports = async function handler(req, res) {
 
             const authClient = await auth.getClient();
             const sheets = google.sheets({ version: 'v4', auth: authClient });
-            const RANGE = 'Admissions!A:N';
-
+            const RANGE = 'Admissions!A:P';
+            
             const sheetData = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: RANGE });
             const rows = sheetData.data.values || [];
             
@@ -104,7 +104,8 @@ module.exports = async function handler(req, res) {
             const rowData = [
                 admissionNumber, formData.studentName, formData.gender || '', formData.dob || '', formData.guardianName || '',
                 formData.email || '', formData.address || '', formData.whatsapp || '', formData.classAdmitted || '',
-                formData.classType || '', formData.dateOfJoining || '', formData.photoUrl || '', session.id, new Date().toISOString()
+                formData.classType || '', formData.doj || '', formData.photoUrl || '', session.id, new Date().toISOString(),
+                session.payment_intent || '', (session.amount_total / 100).toFixed(2)
             ];
 
             await sheets.spreadsheets.values.append({

@@ -42,7 +42,7 @@ module.exports = async function handler(req, res) {
 
         const authClient = await auth.getClient();
         const sheets = google.sheets({ version: 'v4', auth: authClient });
-        const RANGE = 'Admissions!A:N';
+        const RANGE = 'Admissions!A:P';
 
         const response = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: RANGE });
         const rows = response.data.values || [];
@@ -50,8 +50,21 @@ module.exports = async function handler(req, res) {
         if (rows.length > 1) {
             for (let i = 1; i < rows.length; i++) {
                 const row = rows[i];
+                // Column 12 is the sessionId
                 if (row[12] && row[12].trim() === sessionId.trim()) {
-                    return res.status(200).json({ status: 'success', admissionNumber: row[0] });
+                    return res.status(200).json({ 
+                        status: 'success', 
+                        admissionData: {
+                            admissionNumber: row[0],
+                            studentName: row[1],
+                            guardianName: row[4],
+                            classAdmitted: row[8],
+                            classType: row[9],
+                            admissionDate: row[13],
+                            paymentId: row[14],
+                            amountPaid: row[15]
+                        }
+                    });
                 }
             }
         }
