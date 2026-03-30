@@ -30,6 +30,13 @@ function robustFormatKey(key) {
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
+// Disable Vercel's automatic body parser to keep the request stream intact for Stripe signature verification
+module.exports.config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 module.exports = async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
 
