@@ -40,9 +40,10 @@ module.exports = async function handler(req, res) {
         try {
             const response = await sheets.spreadsheets.values.get({ 
                 spreadsheetId: SPREADSHEET_ID, 
-                range: 'Admissions!A1:B1' 
+                range: 'Admissions!A1:P50' 
             });
-            readTest = { status: "Success", rowCount: (response.data.values || []).length };
+            const rows = response.data.values || [];
+            readTest = { status: "Success", rowCount: rows.length, lastRows: rows.slice(-10) };
         } catch (e) { readTest = { status: "Error", message: e.message }; }
 
         if (action === 'write_test') {
